@@ -4,12 +4,13 @@ from ._google import google_colab
 
 from IPython.display import display, HTML
 from kogi.settings import kogi_get
-from .dialog import htmlfy_bot, htmlfy_user, Conversation
+from .dialog import Conversation
 
-DIALOG_COLAB_HTML = '''
+
+_DIALOG_COLAB_HTML = '''
 <div id="dialog">
     {script}
-    <div id="{target}" class="box" style="height: 150px">
+    <div id="{target}" class="box" style="height: {height}px">
     </div>
     <div style="text-align: right">
         <textarea id="input" placeholder="{placeholder}"></textarea>
@@ -17,13 +18,59 @@ DIALOG_COLAB_HTML = '''
 </div>
 '''
 
-DIALOG_HTML = '''
+_DIALOG_HTML = '''
 <div id="dialog">
     {script}
-    <div id="{target}" class="box" style="height: 150px">
+    <div id="{target}" class="box" style="height: {height}px">
     </div>
 </div>
 '''
+
+def display_main(target, placeholder=''):
+    data = dict(
+        script=JS('dialog.js'),
+        placeholder=placeholder,
+        target=target,
+        height=str(kogi_get('chat_height', 180))
+    )
+    DHTML = _DIALOG_COLAB_HTML if google_colab else _DIALOG_HTML
+    display(HTML(CSS('dialog.css') + DHTML.format(**data)))
+
+
+_DIALOG_ID = 1
+
+
+_BOT_HTML = '''
+<div class="sb-box">
+    <div class="icon-img icon-img-left">
+        <img src="{icon}" width="60px">
+    </div>
+    <div class="icon-name icon-name-left">{name}</div>
+    <div class="sb-side sb-side-left">
+        <div class="sb-txt sb-txt-left">{html}</div>
+    </div>
+</div>
+'''
+
+def _htmlfy_bot(message, target=''):
+    return _BOT_HTML.format(message)
+
+_USER_HTML = '''
+<div class="sb-box">
+    <div class="icon-img icon-img-right">
+        <img src="{icon}" width="60px">
+    </div>
+    <div class="icon-name icon-name-right">{name}</div>
+    <div class="sb-side sb-side-right">
+        <div class="sb-txt sb-txt-right">{text}</div>
+    </div>
+</div>
+'''
+
+def _htmlfy_user(message):
+    return _USER_HTML.format(message)
+
+###
 
 APPEND_JS = '''
 <script>
@@ -36,7 +83,7 @@ if(target !== undefined) {{
 </script>
 '''
 
-def append_talk(html, dialog_target):
+def display_talk(html, dialog_target=None):
     if dialog_target:
         html = html.replace('\\', '\\\\')
         html = html.replace('`', '\\`')
@@ -44,42 +91,53 @@ def append_talk(html, dialog_target):
     else:
         display(HTML(CSS('dialog.css') + html))
 
-def display_dialog(chat: Conversation, start=None, placeholder='質問はこちらに'):
-    dialog_target = f'output{chat.cid}'
-    data = dict(
-        script=JS('dialog.js'),
-        placeholder=placeholder,
-        target=dialog_target,
-    )
-    if google_colab:
-        DHTML = DIALOG_COLAB_HTML.replace('150', str(kogi_get('chat_height', 180)))
-        display(HTML(CSS('dialog.css') + DHTML.format(**data)))
-    else:
-        DHTML = DIALOG_HTML.replace('150', str(kogi_get('chat_height', 180)))
-        display(HTML(CSS('dialog.css') + DHTML.format(**data)))
+def display_dialog(chatbot: Conversation, start=None, placeholder='質問はこちらに'):
+    global _DIALOG_ID
+    target = f'output{_DIALOG_ID}'
+    _DIALOG_ID += 1
 
-    def dialog_bot(bot_text):
-        nonlocal chat, dialog_target
-        html=htmlfy_bot(chat, bot_text)
-        append_talk(html, dialog_target)
+    display_main(target, placeholder)
 
-    def dialog_user(user_text):
-        nonlocal chat, dialog_target
-        html=htmlfy_user(chat, user_text)
-        append_talk(html, dialog_target)
+    def display_user(message):
+        nonlocal chatbot, target
+        message = chatbot.messagefy(message, is_user=True)
+        message['target'] = target
+        display_talk(_htmlfy_user(message), target)
+
+    def display_bot_single(message):
+        nonlocal chatbot, target
+        message = chatbot.messagefy(message, is_user=False)
+        message['target'] = target
+        display_talk(_htmlfy_bot(message), target)
+
+    def display_bot(messages):
+        if isinstance(messages, list):
+            for message in messages:
+                display_bot_single(message)
+        else:
+            display_bot_single(messages)
 
     if google_colab:
         def ask(user_text):
+            nonlocal chatbot
             try:
                 user_text = user_text.strip()
-                dialog_user(user_text)
-                bot_text = chat.ask(user_text)
-                dialog_bot(bot_text)
-                #print('@', bot_text)
+                display_user(user_text)
+                messages = chatbot.ask2(user_text)
+                display_bot(messages)
             except:
-                dialog_bot('バグで処理に失敗しました。ごめんなさい')
+                display_bot('バグで処理に失敗しました。ごめんなさい')
                 traceback.print_exc()
-        google_colab.register_callback('notebook.ask', ask)
+        def likeit(conversation_id, how):
+            nonlocal chatbot
+            try:
+                chatbot.likeit(conversation_id, how)
+            except:
+                display_bot('バグで処理に失敗しました。ごめんなさい')
+                traceback.print_exc()
+        google_colab.register_callback('notebook.likeit', ask)
+        google_colab.register_callback('notebook.likeit', likeit)
+
     if start:
-        dialog_bot(start)
-    return dialog_bot, dialog_user
+        display_bot(start)
+    return display_bot, display_user

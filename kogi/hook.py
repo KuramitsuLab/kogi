@@ -3,7 +3,7 @@ from functools import wraps
 
 #from kogi.logger import sync_lazy_loggger
 
-from .dialog import kogi_catch, call_and_start_dialog
+from .conversation import catch_and_start_dialog, call_and_start_dialog
 from IPython.core.interactiveshell import InteractiveShell, ExecutionResult
 
 
@@ -12,42 +12,44 @@ SHOW_TRACEBACK = InteractiveShell.showtraceback
 SHOW_SYNTAXERROR = InteractiveShell.showsyntaxerror
 
 
-DETECTOR = []
-RUNNER = {}
-
-
-def kogi_register_hook(key, runner, detector):
-    if key is not None and runner is not None:
-        RUNNER[key] = runner
-    if detector is not None:
-        DETECTOR.append(detector)
-
 import re
 
 KOGI_PAT=re.compile('#\\s*kogi\\s*(.*)')
 HIRA_PAT=re.compile('[あ-を]')
 
-def find_kogi_action(text):
+def _find_action(text):
     return re.findall(KOGI_PAT, text)
 
-def call_kogi(actions):
+def _call_kogi(code, actions):
     ss=[]
     for action in actions:
         if re.search(HIRA_PAT, action):            
             ss.append(action)
     if len(ss) > 0:
-        call_and_start_dialog(ss)
+        call_and_start_dialog(code, ss)
+        return True
     return False
+
+_DETECTOR = []
+_RUNNER = {}
+
+def kogi_register_hook(key, runner, detector):
+    if key is not None and runner is not None:
+        _RUNNER[key] = runner
+    if detector is not None:
+        _DETECTOR.append(detector)
 
 def kogi_run_cell(ipy, raw_cell, kwargs):
     directive = None
     result = None
-    actions = find_kogi_action(raw_cell)
+    actions = _find_action(raw_cell)
     if len(actions) > 0:
-        for detector in DETECTOR:
+        if _call_kogi(raw_cell, actions):
+            return RUN_CELL(ipy, 'pass', **kwargs)
+        for detector in _DETECTOR:
             key = detector(actions[0], raw_cell)
-            if key in RUNNER:
-                result = RUNNER[key](ipy, raw_cell, directive[0])
+            if key in _RUNNER:
+                result = _RUNNER[key](ipy, raw_cell, directive[0])
                 if not isinstance(result, ExecutionResult):
                     result = RUN_CELL(ipy, 'pass', **kwargs)
                 return result
@@ -77,7 +79,7 @@ def change_showtraceback(func):
         try:
             ipyshell = args[0]
             code = ipyshell.user_global_ns['In'][-1]
-            kogi_catch(code=code)
+            catch_and_start_dialog(code=code)
         except:
             traceback.print_exc()
     return showtraceback

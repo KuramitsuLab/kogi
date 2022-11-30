@@ -1,6 +1,6 @@
 
 from IPython.core.magic import register_cell_magic
-from .atcoder_impl import print, input, _run_judge
+from .OLDatcoder_impl import print, input, _run_judge
 
 
 @register_cell_magic

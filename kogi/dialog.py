@@ -128,48 +128,10 @@ class Chatbot(Conversation):
         return response_talk(text)
 
 
-# if google_colab is None:
-
-#     def show_slots(slots, print=kogi_display):
-#         if 'reason' in slots:
-#             print(slots['reason'])
-#         if 'fault_lines' in slots:
-#             for reason in slots['fault_lines']:
-#                 print(reason)
-#         if 'solution' in slots:
-#             print(slots['solution'])
-#         if 'maybe' in slots:
-#             print(slots['maybe'])
-#         if 'fault_vars' in slots:
-#             for reason in slots['fault_vars']:
-#                 print(reason)
-#         if 'hint' in slots:
-#             print(slots['hint'])
-
-#     def _start_chat(chatbot, start_message):
-#         try:
-#             chatbot.get('bot_name', 'コギー')
-#             kogi_display(start_message)
-#             show_slots(chatbot.slots)
-#         except:
-#             kogi_print('バグりました。ご迷惑をおかけします')
-#             traceback.print_exc()
-
-#     def _start_chat(chatbot, start_message):
-#         bot, _ = display_dialog(chatbot)
-#         bot(start_message)
-
-# else:
-#     def _start_chat(chatbot, start_message):
-#         bot, _ = display_dialog(chatbot)
-#         bot(start_message)
-
-
 global_slots = {
     'bot_name': 'コギー',
     'your_name': 'あなた',
 }
-
 
 def set_global_slots(**kwargs):
     for key, value in kwargs.items():
@@ -230,14 +192,36 @@ def kogi_ask(text:str):
 def kogi_catch(exc_info=None, code: str = None, context: dict = None, exception=None, enable_dialog=True):
     if exc_info is None:
         exc_info = sys.exc_info()
-    slots = kogi_print_exc(code=code,
-                           exc_info=exc_info, caught_ex=exception,
-                           translate_en=translate_en)
+    slots = kogi_print_exc(code=code, exc_info=exc_info, caught_ex=exception, translate_en=translate_en)
     if context is not None:
         slots.update(context)
     run_diagnosis(slots)
     if enable_dialog:
         start_dialog(slots)
+
+## 
+
+class Chatbot2(Conversation):
+
+    def response(self, user_input):
+        text = user_input
+        if 'user_inputs' not in self.slots:
+            self.slots['user_inputs'] = []
+        self.slots['user_inputs'].append(text)
+        response = model_generate(text)
+        if response is None:
+            return 'ZZ.. zzz.. 眠む眠む..'
+        return response
+
+CHATBOT = Chatbot2()
+
+def start_dialog2(context: dict):
+    display_dialog(CHATBOT)
+
+
+def call_and_start_dialog(actions):
+    for say in actions:
+        CHATBOT.ask(say)
 
 
 if __name__ == '__main__':
