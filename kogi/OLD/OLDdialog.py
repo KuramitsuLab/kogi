@@ -1,134 +1,228 @@
+import sys
 import traceback
-from .content import ICON
+from IPython import get_ipython
 
-# from kogi.settings import translate_ja, isEnglishDemo
-# def cc(text):
-#     if isEnglishDemo():
-#         if len(text)==0:
-#             return text
-#         n_ascii = sum(1 for c in text if ord(c) < 128)
-#         #print(text, n_ascii, len(text), n_ascii / len(text))
-#         if (n_ascii / len(text)) < 0.4:  # 日本語
-#             t = translate_ja(text)
-#             # print(t)
-#             if t is not None:
-#                 return f'{text}<br><i>{t}</i>'
-#     return text
+from .settings import (
+    model_generate, translate_en, translate_ja,
+    send_slack, kogi_get, kogi_log, kogi_print
+)
 
-# def htmlfy(text):
-#     if isinstance(text, list):
-#         text = '<br>'.join(cc(line) for line in text)
-#     else:
-#         text = cc(text)
-#     return text
+from .diagnosis import run_diagnosis
+from .dialog_desc import get_desc
 
+from .ui import Conversation, google_colab
 
-# DIALOG_BOT_HTML = '''
-# <div class="sb-box">
-#     <div class="icon-img icon-img-left">
-#         <img src="{icon}" width="60px">
-#     </div>
-#     <div class="icon-name icon-name-left">{name}</div>
-#     <div class="sb-side sb-side-left">
-#         <div class="sb-txt sb-txt-left">{text}</div>
-#     </div>
-# </div>
-# '''
+if google_colab:
+    from .ui.dialog_colab import display_dialog
+else:
+    try:
+        import ipywidgets
+        from .ui.dialog_ipywidgets import display_dialog
+    except ModuleNotFoundError:
+        from .ui.dialog_colab import display_dialog
 
-# def htmlfy_bot(chat, text):
-#     return DIALOG_BOT_HTML.format(
-#         icon=ICON(chat.get('bot_icon', 'kogi-fs8.png')),
-#         name=chat.get('bot_name', 'コギー'),
-#         text=htmlfy(text)
-#     )
+from .liberr import kogi_print_exc, replace_eparams
+from .logger import add_lazy_logger
+
+import kogi.fake_nlp as nlp
+
+MODULES = [
+    ('math.', 'import math'),
+    ('os.', 'import os'),
+    ('sys.', 'import sys'),
+    ('collections.', 'import collections'),
+    ('time.', 'import time'),
+    ('datetime.', 'import datetime'),
+    ('random.', 'import random'),
+    ('np.', 'import numpy as np'),
+    ('plt.', 'import matplotlib.pyplot as plt'),
+    ('pd.', 'import pandas as pd'),
+]
 
 
-
-# DIALOG_USER_HTML = '''
-# <div class="sb-box">
-#     <div class="icon-img icon-img-right">
-#         <img src="{icon}" width="60px">
-#     </div>
-#     <div class="icon-name icon-name-right">{name}</div>
-#     <div class="sb-side sb-side-right">
-#         <div class="sb-txt sb-txt-right">{text}</div>
-#     </div>
-# </div>
-# '''
-
-# def htmlfy_user(chat, text):
-#     return DIALOG_USER_HTML.format(
-#         icon=ICON(chat.get('user_icon', 'girl_think-fs8.png')),
-#         name=chat.get('name', 'あなた'),
-#         text=htmlfy(text)
-#     )
-    
-
-# _DIALOG_ID = 0
-
-class Conversation(object):
-    slots: dict
-    records: list
-
-    def __init__(self, slots=None):
-        # global _DIALOG_ID
-        # self.cid= _DIALOG_ID
-        # DIALOG_ID += 1
-        self.slots = slots or {}
-        self.records = []
-
-    def get(self, key, value):
-        return self.slots.get(key, value)
-
-    def update(self, context: dict):
-        return self.slots.update(context)
+def check_module(code):
+    for module, todo in MODULES:
+        if code.startswith(module):
+            return f'<tt>{todo}</tt> してから、'
+    return ''
 
 
-    def ask(self, input_text):
-        output_text = self.response(input_text)
-        self.records.append((input_text, output_text))
-        output_text = cc(output_text)
-        return output_text
-
-    def response(self, input_text):
-        return 'わん'
-
-    def record(self, input_text, message):
-        response_id = len(self.records)
-        message['response_id'] = response_id
-        self.records.append((input_text, message))
-    
-    def get_record(self, response_id):
-        return self.records[response_id]
-
-    def ask_message(self, input_text):
-        messages = self.response_message(input_text)
-        if isinstance(messages, list):
-           for message in messages:
-            self.record(input_text, message)
-        else:
-            self.record(input_text, messages)
-        return messages
-
-    def response_message(self, input_text):
-        return self.messagefy(self.response(input_text), is_user=False)
-
-    def messagefy(self, message, is_user=False):
-        if isinstance(message, str):
-            message = dict(text=message)
-        if is_user:
-            if 'name' not in message:
-                message['name'] = 'あなた'
-            if 'icon' not in message:
-                message['icon'] = 'girl_think-fs8.png'
-        else:
-            if 'name' not in message:
-                message['name'] = 'コギー'
-            if 'icon' not in message:
-                message['icon'] = 'kogi-fs8.png'
-        if 'html' not in message:
-            # message['html'] = #htmlfy(message['text'])
-            message['html'] = message['text']
-        return message
+def response_codegen(text: str):
+    response = model_generate(text)
+    if response is None:
+        return 'kogi.set(...)を再実行しよう'
+    code = response.replace('<nl>', '\n').replace('<tab>', '    ')
+    return check_module(code) + f'<pre>{code}</pre>'
 
 
+def response_hint(slots: dict):
+    if 'ekey' in slots and 'eparams' in slots:
+        ekey = slots['ekey']
+        eparams = ' '.join(slots['eparams'])
+        eline = slots.get('eline', '')
+        text = f'{ekey}<tab>{eparams}<tab>{eline}'
+        ans = model_generate(text)
+        if ans:
+            # kogi_print(ans, slots['eparams'])
+            return replace_eparams(ans, slots['eparams'])
+            # return f'{ans}<br>{translate_ja(ans)}'
+    return None
+
+
+def response_talk(text: str):
+    response = model_generate(f'talk: {text}')
+    if response is None:
+        return 'ZZ.. zzz.. 眠む眠む..'
+    return response
+
+
+def response_desc(text: str):
+    response = get_desc(text)
+    if response is None:
+        return response_talk(text)
+    return response
+
+
+class Chatbot(Conversation):
+
+    def response(self, user_input):
+        text = user_input
+        if 'user_inputs' not in self.slots:
+            self.slots['user_inputs'] = []
+        self.slots['user_inputs'].append(text)
+        # if nlp.startswith(text, ('質問')):
+        #     return self.response_question(text)
+        text = nlp.normalize(user_input)
+        # if nlp.startswith(text, ('デバッグ', '助けて', 'たすけて', '困った', '分析', '調べて')):
+        #     if 'fault_vars' in self.slots:
+        #         return self.slots['fault_vars']
+        #     else:
+        #         return 'コギーも助けて...'
+        if text.endswith('には'):
+            text = text[:-2]
+            return response_codegen(text)
+        if text.endswith('たい'):
+            text = nlp.remove_tai(text)
+            return response_codegen(text)
+        if text.endswith('って') or text.endswith('とは'):
+            text = text[:-2]
+            return response_desc(text)
+        if nlp.startswith(text, ('原因', '理由', 'なぜ', 'なんで', 'どう')):
+            response = response_hint(self.slots)
+            if response is None:
+                if 'reason' in self.slots:
+                    return self.slots['reason']
+                if 'solution' in self.slots:
+                    return self.slots['solution']
+                if 'maybe' in self.slots:
+                    return 'ひょっとしたら、' + self.slots['maybe']
+                if 'ekey' in self.slots:
+                    return 'エラーメッセージを検索してみたら？'
+                return 'エラーなくない？'
+            return response
+        if nlp.startswith(text, ('ヒント', '助けて', 'たすけて')):
+            if 'hint' in self.slots:
+                return self.slots['hint']
+            else:
+                return 'ヒントなし'
+        return response_talk(text)
+
+
+global_slots = {
+    'bot_name': 'コギー',
+    'your_name': 'あなた',
+}
+
+def set_global_slots(**kwargs):
+    for key, value in kwargs.items():
+        global_slots[key] = value
+
+
+PREV_CHAT = None
+CHAT_CNT = 0
+
+
+def record_dialog():
+    global PREV_CHAT, CHAT_CNT
+    if PREV_CHAT is None:
+        return
+    chat = PREV_CHAT
+    PREV_CHAT = None
+    CHAT_CNT += 1
+    user = kogi_get('name', 'ユーザ')
+    data = {'type': 'kogi_chat'}
+    data.update(chat.slots)
+    data['chat'] = chat.records
+    kogi_log('kogi_chat', right_now=True, **data)
+    # Slack レポート
+    lines = [f'*{user}({CHAT_CNT})より*']
+    if 'code' in data:
+        lines.extend(['```', data['code'], '```'])
+    if 'emsg' in data:
+        lines.extend([data['emsg'], ''])
+    if 'start' in data:
+        lines.extend([data['start']])
+    #print(chat.records, data)
+    if len(chat.records) > 0:
+        for user_text, bot_text in chat.records:
+            lines.extend([f'> {user_text}', bot_text])
+    send_slack('\n'.join(lines))
+
+
+add_lazy_logger(record_dialog)
+
+
+def start_dialog(slots: dict):
+    global PREV_CHAT
+    record_dialog()
+    dialog_slots = global_slots.copy()
+    dialog_slots.update(slots)
+    dialog_slots['your_name'] = kogi_get('name', 'あなた')
+    if 'start' not in dialog_slots:
+        dialog_slots['start'] = dialog_slots.get('translated', 'おはよう')
+    PREV_CHAT = Chatbot(slots=dialog_slots)
+    display_dialog(PREV_CHAT, dialog_slots['start'])
+    return PREV_CHAT
+
+def kogi_ask(text:str):
+    global PREV_CHAT
+    if PREV_CHAT is not None:
+        print(PREV_CHAT.ask(text))
+
+def kogi_catch(exc_info=None, code: str = None, context: dict = None, exception=None, enable_dialog=True):
+    if exc_info is None:
+        exc_info = sys.exc_info()
+    slots = kogi_print_exc(code=code, exc_info=exc_info, caught_ex=exception, translate_en=translate_en)
+    if context is not None:
+        slots.update(context)
+    run_diagnosis(slots)
+    if enable_dialog:
+        start_dialog(slots)
+
+## 
+
+class Chatbot2(Conversation):
+
+    def response(self, user_input):
+        text = user_input
+        if 'user_inputs' not in self.slots:
+            self.slots['user_inputs'] = []
+        self.slots['user_inputs'].append(text)
+        response = model_generate(text)
+        if response is None:
+            return 'ZZ.. zzz.. 眠む眠む..'
+        return response
+
+CHATBOT = Chatbot2()
+
+def start_dialog2(context: dict):
+    display_dialog(CHATBOT)
+
+
+def call_and_start_dialog(actions):
+    for say in actions:
+        CHATBOT.ask(say)
+
+
+if __name__ == '__main__':
+    start_dialog({})
