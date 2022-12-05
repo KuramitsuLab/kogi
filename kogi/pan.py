@@ -201,7 +201,7 @@ class PanAI(ConversationAI):
         #print("model_input:", user_input)
         response_text = model_generate(user_input)
         #print("model_output:", response_text)
-        response_text = make_output(text, after_maps)
+        response_text = make_output(response_text, after_maps)
 
         if response_text is None:
             return 'ZZ.. zzz.. 眠む眠む..'
