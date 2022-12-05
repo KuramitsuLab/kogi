@@ -3,6 +3,7 @@ import numbers
 import string
 import os
 import pandas as pd
+from IPython import get_ipython
 from kogi.service import *
 from .conversation import ConversationAI, set_chatbot
 
@@ -17,7 +18,8 @@ def extract_tag(text):
         return tag+end_tag, text
     return '', text
 
-#型取得
+
+# 型取得
 KOGI_TYPEMAP = {
     'bool': '_結果_',
     'int': '_整数_',
@@ -30,6 +32,7 @@ KOGI_TYPEMAP = {
     'DataFrame': '_データフレーム_',
 }
 
+
 def get_kogitype(value):
     py_type = type(value).__name__
     kg_type = KOGI_TYPEMAP.get(py_type, None)
@@ -41,16 +44,19 @@ def get_kogitype(value):
         return '_イテラブル_'
     return f'_結果_'
 
-##みんなが使いそうな変数
-possy = {'n': '_整数_', 'N': '_整数_',}
+
+# みんなが使いそうな変数
+possy = {'n': '_整数_', 'N': '_整数_', }
+
 
 def get_variable_type(name):
     shell = get_ipython()
     if name in shell.user_ns:
         value = shell.user_ns[name]
         return get_kogitype(value)
-    else: #変数が未定義な場合
+    else:  # 変数が未定義な場合
         return possy.get(name, '_結果_')
+
 
 def eval_code_type(code):
     shell = get_ipython()
@@ -61,7 +67,7 @@ def eval_code_type(code):
         return '_結果_'
 
 
-#パーサ
+# パーサ
 try:
     import pegtree as pg
 except ModuleNotFoundError:
@@ -99,8 +105,8 @@ def scan_dataframes():
     shell = get_ipython()
     user_ns = shell.user_ns
     for name in user_ns:
-        #仮
-        if name[0]=="_":
+        # 仮
+        if name[0] == "_":
             pass
         else:
             value = user_ns[name]
@@ -111,8 +117,9 @@ def scan_dataframes():
                     column_maps.setdefault(column, name)
     return dataframe_names, column_maps
 
+
 def detect_string_type(s):
-    content = s[1:-1] # クオートをとる
+    content = s[1:-1]  # クオートをとる
     if content.endswith('.csv'):
         return '_CSVファイル_'
     if len(content) == 1:
@@ -128,7 +135,7 @@ def append_map(maps, key, value):
 
 def parse(text):
     dataframe_names, column_maps = scan_dataframes()
-    after_maps={}
+    after_maps = {}
     tree = _parser(text)
     ss = []
     for t in tree:
@@ -160,11 +167,11 @@ def parse(text):
     return ''.join(ss).replace('_', ''), after_maps
 
 
-#モデル出力→ユーザへの出力
+# モデル出力→ユーザへの出力
 def get_words(text):
     words = []
     while True:
-        if len(text)>0:
+        if len(text) > 0:
             pos1 = text.find('_')
             pos2 = text.find('_', pos1+1)+1
             if pos1 == False or pos2 == False:
@@ -177,14 +184,15 @@ def get_words(text):
             break
     return words
 
+
 def make_output(text, dic):
     words = get_words(text)
     for word in words:
         if word in dic:
             new_word = dic[word].pop(0)
             text = text.replace(word, new_word, 1)
-            dic[word].append(new_word)        
-    return  text
+            dic[word].append(new_word)
+    return text
 
 
 class PanAI(ConversationAI):
