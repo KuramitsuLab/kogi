@@ -20,20 +20,6 @@ from .liberr import kogi_exc
 from .render import Render
 
 
-# def english_subtitle(text):
-#     if isEnglishDemo():
-#         if len(text) == 0:
-#             return text
-#         n_ascii = sum(1 for c in text if ord(c) < 128)
-#         #print(text, n_ascii, len(text), n_ascii / len(text))
-#         if (n_ascii / len(text)) < 0.4:  # 日本語
-#             t = translate_ja(text)
-#             # print(t)
-#             if t is not None:
-#                 return f'{text}<br><i>{t}</i>'
-#     return text
-
-
 class ConversationAI(object):
     slots: dict
     records: list
@@ -59,7 +45,7 @@ class ConversationAI(object):
         response_text = model_generate(user_input)
         if response_text is None:
             return 'ZZ.. zzz.. 眠む眠む..'
-        return response_text
+        return [response_text]*3
 
     def record(self, input_text, message):
         response_id = len(self.records)
@@ -79,24 +65,24 @@ class ConversationAI(object):
         return messages
 
     def response_message(self, input_text):
-        return self.messagefy(self.response(input_text), is_user=False)
+        ms = self.response(input_text)
+        if isinstance(ms, list) or isinstance(ms, tuple):
+            if len(ms) == 3:
+                return [
+                    self.messaegfy(ms[0], name='コギー', icon='kogi-fs8.png'),
+                    self.messaegfy(ms[1], name='ぱんち', icon='pan-fs8.png'),
+                    self.messaegfy(ms[2], name='OpenAI', icon='openai-fs8.png'),
+                ]
+            return [self.messagefy(m) for m in ms]
+        return self.messagefy(self.response(input_text))
 
-    def messagefy(self, message, is_user=False):
+    def messagefy(self, message, name='コギー', icon='kogi-fs8.png'):
         if isinstance(message, str):
             message = dict(text=message)
-        if is_user:
-            if 'name' not in message:
-                message['name'] = 'あなた'
-            if 'icon' not in message:
-                message['icon'] = 'girl_think-fs8.png'
-        else:
-            if 'name' not in message:
-                message['name'] = 'コギー'
-            if 'icon' not in message:
-                message['icon'] = 'kogi-fs8.png'
-        if 'html' not in message:
-            # message['html'] = #htmlfy(message['text'])
-            message['html'] = message['text']
+        if 'name' not in message:
+            message['name'] = name
+        if 'icon' not in message:
+            message['icon'] = icon
         return message
 
 
