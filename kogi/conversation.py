@@ -128,7 +128,7 @@ def error_message(record):
     # print(record)
     if '_stacks' in record:
         for stack in record['_stacks']:
-            if 'site-packages' in stack['filename']:
+            if '-packages' in stack['filename']:
                 continue
             r.extend(stack, div='<pre>{}</pre>')
     else:

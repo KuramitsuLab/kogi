@@ -130,7 +130,7 @@ def display_dialog(chatbot, start=None, placeholder='質問はこちらに'):
             try:
                 user_text = user_text.strip()
                 display_user(user_text)
-                messages = chatbot.ask2(user_text)
+                messages = chatbot.ask_message(user_text)
                 display_bot(messages)
             except:
                 display_bot('バグで処理に失敗しました。ごめんなさい')
