@@ -107,13 +107,13 @@ def display_dialog(chatbot, start=None, placeholder='質問はこちらに'):
 
     def display_user(message):
         nonlocal chatbot, target
-        message = chatbot.messagefy(message, is_user=True)
+        message = chatbot.messagefy(message, name='あなた', icon='girl_think-fs8.png')
         message['target'] = target
         display_talk(_htmlfy_user(message), target)
 
     def display_bot_single(message):
         nonlocal chatbot, target
-        message = chatbot.messagefy(message, is_user=False)
+        message = chatbot.messagefy(message)
         message['target'] = target
         display_talk(_htmlfy_bot(message), target)
 
