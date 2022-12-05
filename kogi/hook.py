@@ -28,7 +28,7 @@ def _call_kogi(code, actions):
         if re.search(HIRA_PAT, action):
             ss.append(action)
     if len(ss) > 0:
-        call_and_start_kogi(code, ss)
+        call_and_start_kogi(ss, code)
         return True
     return False
 

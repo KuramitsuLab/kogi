@@ -111,8 +111,9 @@ def set_chatbot(chatbot):
 def call_and_start_kogi(actions, code: str = None, context: dict = None):
     for user_text in actions:
         # _DefaultChatbot.update(context)
+        # print('@', actions)
         messages = _DefaultChatbot.ask_message(user_text)
-        # print(messages)
+        # print('@@', messages)
         display_dialog(_DefaultChatbot, messages)
         return
 
@@ -128,7 +129,7 @@ def error_message(record):
     # print(record)
     if '_stacks' in record:
         for stack in record['_stacks']:
-            if 'site-packages' in stack['filename']:
+            if '-packages' in stack['filename']:
                 continue
             r.extend(stack, div='<pre>{}</pre>')
     else:

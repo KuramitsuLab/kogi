@@ -60,7 +60,7 @@ def _load_huggingface(model_id):
 
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
-        with _Lock(f'downloading {model_id}') as _:
+        with _Lock(f'{model_id}') as _:
             tokenizer = AutoTokenizer.from_pretrained(model_id, is_fast=False)
             model = AutoModelForSeq2SeqLM.from_pretrained(model_id)
 

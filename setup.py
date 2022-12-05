@@ -22,7 +22,7 @@ setup(name="kogi",
       packages=['kogi', 'kogi.liberr',
                 'kogi.service', 'kogi.problem', 'kogi.ui'],
       #package_dir={"": "src"},
-      package_data={'kogi': ['./*.pegtree', 'ui/*.*', '*/*.txt']},
+      package_data={'kogi': ['./*.pegtree', 'ui/*.*', '*/*.tsv']},
       install_requires=_requires_from_file('requirements.txt'),
       classifiers=[
           'Development Status :: 4 - Beta',
