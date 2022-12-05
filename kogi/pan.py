@@ -209,4 +209,4 @@ class PanAI(ConversationAI):
         return text
 
 
-set_chatbot
+set_chatbot(PanAI())
