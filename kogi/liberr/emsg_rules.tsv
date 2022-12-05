@@ -1,0 +1,211 @@
+AttributeError: <A> object attribute <B> is read-only	<A>オブジェクトのBプロパティは読み取り専用です。代入できません。
+AttributeError: <A> object has no attribute <B>	<A>オブジェクトには<B>プロパティも<B>メソッドもありません。
+AttributeError: <A> object has no property <B>	<A>オブジェクトは<B>プロパティも<B>メソッドもありません。
+AttributeError: Can only use .dt accessor with datetimelike values	.dtアクセサは日付データでしか使えません。
+AttributeError: module <A> has no attribute <B>	<A>モジュールには<B><B>はありません。
+AttributeError: <A> object <B> has no attribute <C>	オブジェクトAには、<B>プロパティはありません。
+EOFError:	ファイルの読み込みが終端に達しました。
+FileNotFoundError: <A> No such file or directory: <B>	入出力エラーです。<B>のようなファイルやディレクトリはありません。
+ImportError: cannot import name <A> from <B> <C>	<B>モジュールから<A>をインポートできません。
+IndentationError: expected an indented block (<A>, line <B>)	<B>行目には、インデントされたブロックであるはずです。
+IndexError: index <A> is out of bounds for axis <B> with size <C>	インデックス<A>は、軸<B>（サイズ<C>）の大きさを超えています。
+IndexError: <A> index out of range	インデックスが<A>の大きさを超えています。
+IndexError: list index out of range	インデックスがリストの大きさを超えています。
+IndexError: string index out of range	インデックスが文字列の長さを超えています。
+IndexError: too many indices for array: array is <A>-dimensional, but <B> were indexed	配列のインデックスが多すぎます。 配列は<A>次元です。
+InvalidIndexError: Reindexing only valid with uniquely valued Index objects	インデックスの振り直しは、ユニークな値を持つインデックスオブジェクトでのみ有効です。
+KeyError: (<A>, <B>)	キー(<A>, <B>)が見つかりません。
+KeyError: (<A>, <B>, <C>)	キー(<A>, <B>, <C>)が見つかりません。
+KeyError: (<A>, <B>, <C>, <D>)	キー(<A>, <B>, <C>, <D>)が見つかりません。
+KeyError: -<A>	キー-<A>が見つかりません。
+KeyError: <A>	キー<A>が見つかりません。
+KeyError: False	キー False が見つかりません。
+KeyError: "<A> not found in axis"	<A>は軸にありません
+KeyError: "<A> not in index"	インデックス中にキー<A>はありません
+KeyError: "None of <A> are in the <B>"	<A>のいずれも、<B>にありません
+KeyboardInterrupt:	プログラム強制終了のシグナルによって中断されました。
+KogiError: <A>	コギーくんの内部のエラーです。あなたは何も悪くありません。
+MessageError: Error: credential propagation was unsuccessful	（エラー報告）クレデンシャルの伝搬に失敗しました。
+ModuleNotFoundError: No module named <A>	Aという名前のモジュールはありません。
+NameError: name <A> is not defined	<A>は未定義です。つまり、まだ代入もインポートもされていません。
+NotFittedError: This <A> instance is not fitted yet. Call <B> with appropriate arguments before using this estimator.	モデル<A>は、まだ学習されていません。予測する前に、<B> を使って訓練データを学習してください。
+ParserError: Error tokenizing data. C error: Buffer overflow caught - possible malformed input file.	データのトークン化に失敗しました。（エラの報告）バッファオーバーフローが検出されました - 不正な入力ファイルの可能性があります。
+ParserError: Error tokenizing data. C error: Expected <A> fields in line <B>, saw <C>	データのトークン化に失敗しました。（エラーの報告）<B>行に期待された<A>フィールド、<C>を見た
+SyntaxError: incomplete input (<A>, line <B>)	<B>行目の途中で終わっています。
+SyntaxError: unexpected EOF while parsing	コードを書き切っていません。不正な構文です。
+SyntaxError: invalid syntax (<A>, line <B>)	<B>行目は、正しくない書き方です。
+SyntaxError: unmatched <A> (<B>, line <C>)	<C>行目は、構文エラーです。たぶん、<A>が多すぎます。
+TypeError: <A>() argument <B> must be str, not int	<A>()の引数<B>は、整数ではなく文字列でなければならない
+TypeError: <A>() argument must be a string or a number, not <B>	<A>()の引数は、文字列または数値です。<B> ではありません。
+TypeError: <A>() argument must be a string, a bytes-like object or a number, not <B>	<A>()の引数は文字列、バイト列、または数値です。<B> ではありません。
+TypeError: <A>() can't convert non-string with explicit base	baseを与えた場合、A()は、文字列でない値を（整数に）変換することはできません。
+TypeError: <A>() got an unexpected keyword argument <B>	<A>()はおかしなキーワード引数<B>で呼び出されました。
+TypeError: <A>() got multiple values for argument <B>	<A>() は引数<B>として、複数の値を得た
+TypeError: <A> is an invalid key	<A> は無効なキーです。
+TypeError: <A> is an invalid keyword argument for <B>()	<B>()では、キーワード引数<A>は使えません。
+TypeError: <A>() missing required argument <B> (pos <C>)	<A>()は、必要な引数が足りません。
+TypeError: <A>() missing <B> required positional argument: <C>	<A>()に<B>の必須の引数がありません。<C>
+TypeError: <A>() missing <B> required positional arguments: <C> and <D>	<A>()には、<B>の必須引数がない。<C>と<D>
+TypeError: <A>() must have at least two arguments.	<A>()は少なくとも2つの引数を持つ必要があります。
+TypeError: <A> not supported between instances of <B> and <C>	<A>は、<B>と<C>の値の間では使えません。
+TypeError: <A> object cannot be interpreted as an integer	<A> オブジェクトは整数として解釈できません。
+TypeError: <A> object does not support item assignment	<A>オブジェクトは、配列や辞書のように代入できません。
+TypeError: <A> object is not callable	<A>オブジェクトは関数でなく、呼び出し可能ではありません
+TypeError: <A> object is not iterable	<A>オブジェクトは、リストのようなイテラブル（反復可能）ではありません。
+TypeError: <A> object is not subscriptable	<A>オブジェクトは（リストのように）インデックスをつけることができません。
+TypeError: <A>() takes <B> positional argument but <C> were given	<A>() は <B>つの引数を取りますが、<C>つが与えられたました。
+TypeError: <A>() takes <B> positional arguments but <C> were given	<A>は<B>つの引数を取りますが、<C>つが与えられました。
+TypeError: <A>() takes at most <B> arguments (<C> given)	<A>()は最大で <B>つまでの引数を取ります。
+TypeError: <A>() takes exactly one argument (<B> given)	<A>()は引数を1つだけ取ります。
+TypeError: <A>() takes no arguments (<B> given)	<A>()はひとつも引数を取りません。
+TypeError: <A>() takes no positional arguments	<A>()はひとつも引数を取りません。
+TypeError: Could not convert <A> <B> to numeric	<A> <B> を数値に変換できませんでした。
+TypeError: Index(...) must be called with a collection of some kind, None was passed	Index(...) は何らかのコレクションを用いて呼び出すべきです。None ではありません。
+TypeError: Labels in y_true and y_pred should be of the same type. Got y_true=<A> and y_pred=<B>. Make sure that the predictions provided by the classifier coincides with the true labels.	y_true と y_pred のラベルは同じタイプであるべきです。実際は、y_true=<A> と y_pred=<B> が与えら得ました。分類器によって提供される予測値が真のラベルと一致することを確認してください。
+TypeError: Neither the <A> nor <B> variable appears to be numeric.	<A> も <B> も数値ではないようです。
+TypeError: Singleton array array(<A>) cannot be considered a valid collection.translated:シングルトン配列 array(<A>) は、有効なコレクションと見なすことができません。
+TypeError: argument of type <A> is not iterable	<A>型の引数はイテラブル（反復可能）ではありません。
+TypeError: bad operand type for unary +: <A>	単項の+演算子の使用法が間違っています。（<A>型では使えません）
+TypeError: can only concatenate <A> (not <B>) to <C>	<A>と<C>のみ連結できます。<B>型は<C>に連結できません。
+TypeError: can't multiply sequence by non-int of type <A>	シーケンスを整数倍のみ可能です。<A>型の値を乗じることはできません。
+TypeError: cannot concatenate object of type <A>; only Series and DataFrame objs are valid	<A>型のオブジェクトは連結できません。Series と DataFrame オブジェクトのみ有効です。
+TypeError: decoding to str: need a bytes-like object, type found	文字列をコードするには、バイト列のようなオブジェクトが必要です。
+TypeError: <A> expected at most <B> argument, got <C>	<A>()は最大<B>つの引数しか取りません。
+TypeError: <A> expected at most <B> arguments, got <C>	<A>()は最大<B>つの引数しか取りません。
+TypeError: <A> indices must be integers or slices, not <B>	<A>のインデックスは、整数かスライスです。<B>ではありません。
+TypeError: <A> expected at least <B> argument, got <C>	<A>()の引数は少なくとも<B>つ必要です。
+TypeError: <A> expected at least <B> arguments, got <C>	<A>()の引数は少なくとも<B>つ必要です。
+TypeError: <A> expected <B> argument, got <C>	<A>()の引数の個数が間違っています。
+TypeError: <A> expected <B> arguments, got <C>	<A>()の引数の個数が間違っています。
+TypeError: must be real number, not function	実数でなければなりません。関数ではありません。
+TypeError: not all arguments converted during string formatting	文字列フォーマット中にすべての引数が変換されませんでした
+TypeError: object of type <A> has no <B>()	<A>型のオブジェクトは <B>()が使えません。
+TypeError: slice indices must be integers or None or have an __index__ method	スライスのインデックスは、整数かNone、もしくは __index__ メソッドを持つ必要があります。
+TypeError: string indices must be integers	文字列のインデックスは、整数でなければなりません。
+TypeError: type str doesn't define __round__ method	str 型は __round__ メソッドを定義していません。
+TypeError: ufunc <A> not supported for the input types, and the inputs could not be safely coerced to any supported types according to the casting rule <B>safe''	関数 <A> は入力された値の型に対応していません。（自動的な型変換もできないようです。）
+TypeError: unhashable type: <A>	<A>はハッシュ化できない型です。
+TypeError: unsupported operand type(s) for +: <A> and <B>	+演算子は、<A>型と<B>型の間では使えません。
+TypeError: unsupported operand type(s) for +=: <A> and <B>	+=演算子は、<A>型と<B>型の間では使えません。
+TypeError: unsupported operand type(s) for -: <A> and <B>	-演算子は、<A>型と<B>型の間では使えません。
+TypeError: unsupported operand type(s) for -=: <A> and <B>	-=演算子は、<A>型と<B>型の間では使えません。
+TypeError: unsupported operand type(s) for *: <A> and <B>	*演算子は、<A>型と<B>型の間では使えません。
+TypeError: unsupported operand type(s) for *=: <A> and <B>	*=演算子は、<A>型と<B>型の間では使えません。
+TypeError: unsupported operand type(s) for ** or <A>(): <B> and <C>	**演算子またはA()は、<B>型と<C>型の間では使えません。
+TypeError: unsupported operand type(s) for %: <A> and <B>	%演算子は、<A>型と<B>型の間では使えません
+TypeError: unsupported operand type(s) for %=: <A> and <B>	%=演算子は、<A>型と<B>型の間では使えません
+TypeError: unsupported operand type(s) for /: <A> and <B>	/演算子は、<A>型と<B>型の間では使えません。
+TypeError: unsupported operand type(s) for /=: <A> and <B>	/=演算子は、<A>型と<B>型の間では使えません。
+TypeError: unsupported operand type(s) for //: <A> and <B>	//演算子は、<A>型と<B>型の間では使えません。
+TypeError: unsupported operand type(s) for //=: <A> and <B>	//=演算子は、<A>型と<B>型の間では使えません。
+TypeError: unsupported operand type(s) for ^: <A> and <B>	^演算子は、<A>型と<B>型の間では使えません。
+TypeError: unsupported operand type(s) for ^=: <A> and <B>	^=演算子は、<A>型と<B>型の間では使えません。
+TypeError: unsupported operand type(s) for |: <A> and <B>	|演算子は、<A>型と<B>型の間では使えません。
+TypeError: unsupported operand type(s) for |=: <A> and <B>	|=演算子は、<A>型と<B>型の間では使えません。
+TypeError: unsupported operand type(s) for &: <A> and <B>	&演算子は、<A>型と<B>型の間では使えません。
+TypeError: unsupported operand type(s) for &=: <A> and <B>	&=演算子は、<A>型と<B>型の間では使えません。
+TypeError: unsupported operand type(s) for <<: <A> and <B>	<<演算子は、<A>型と<B>型の間では使えません。
+TypeError: unsupported operand type(s) for <<=: <A> and <B>	<<=演算子は、<A>型と<B>型の間では使えません。
+TypeError: unsupported operand type(s) for >>: <A> and <B>	>>演算子は、<A>型と<B>型の間では使えません。
+TypeError: unsupported operand type(s) for >>=: <A> and <B>	>>=演算子は、<A>型と<B>型の間では使えません。
+UsageError: <A> is a cell magic, but the cell body is empty.	<A> はセル用のマジックですが、セル本体は空です。
+UsageError: Cell magic <A> not found.	セル用のマジック <A> が見つかりません。
+UsageError: Line magic function <A> not found (But cell magic <B> exists, did you mean that instead?).	ライン用のマジック関数<A>が見つかりません。
+UsageError: Line magic function <A> not found.	ラインマジック関数<A>が見つかりません。
+ValueError: <A>() arg is an empty sequence	<A>()の引数が空のシーケンスです。
+ValueError: <A>() arg not in range(<B>)	<A>()の引数は、range(<B>)にありません。
+ValueError: <A> is not in list	<A>はリストの中にありません。
+ValueError: <A> must increase monotonically, when an array	<A> は（もし配列の場合）単調に増加するはずです。
+ValueError: Boolean array expected for the condition, not int64	条件として、int64ではなく、Booleanの配列が欲しいところです。
+ValueError: Boolean array expected for the condition, not object	条件として、オブジェクトではなく、ブール配列が欲しいところです。
+ValueError: Cannot pass values for both <A> and <B>	<A>と<B>の両方に対して値を渡すことはできません。
+ValueError: Cannot take a larger sample than population when <A>	<A>の場合、母集団より大きなサンプルを取ることはできません。
+ValueError: Columns must be same length as key	列はキーと同じ長さにしなければなりません
+ValueError: Could not interpret input <A>	入力 <A> を解釈できませんでした。
+ValueError: Could not interpret value <A> for parameter <B>	パラメータ<B>の値<A>を解釈できませんでした
+ValueError: Expected 2D array, got 1D array instead: array=<A>. Reshape your data either using array.reshape(-<B>, <C>) if your data has a single feature or array.reshape(D, -E) if it contains a single sample.	2次元配列が欲しいところに、1次元の配列が来た: array=<A>. データが単一素性の場合は array.reshape(-<B>, <C>)、単一サンプルの場合は array.reshape(D, -E) でデータを変形してください。
+ValueError: Expected 2D array, got scalar array instead: array=<A>. Reshape your data either using array.reshape(-<B>, <C>) if your data has a single feature or array.reshape(D, -E) if it contains a single sample.	2次元配列が欲しいところに、スカラーの配列が来た: array=<A>. データが単一素性の場合は array.reshape(-<B>, <C>)、単一サンプルの場合は array.reshape(D, -E) でデータを変形してください。
+ValueError: Found array with dim <A>. Estimator expected <= <B>.	<A>次元の配列が見つかりました。<B>より小さいのが求められていますが、
+ValueError: Found input variables with inconsistent numbers of samples: <A>	サンプル数に矛盾がある入力変数が見つかった。<A>
+ValueError: If using all scalar values, you must pass an index	すべてのスカラー値を使用する場合、インデックスを渡す必要があります。
+ValueError: Input contains NaN, infinity or a value too large for dtype(<A>).	NaN、無限大、または dtype(<A>) に対して大きすぎる値が含まれています。
+ValueError: Invalid RGBA argument: <A>	<A>は無効な RGBA 引数です。
+ValueError: Length mismatch: Expected axis has <A> elements, new values have <B> elements	長さの不一致です。指定された軸はA要素あるが、新しい値はB要素あります。
+ValueError: Must provide an even number of non-keyword arguments	偶数個の非キーワード引数を与えなければなりません。
+ValueError: Number of labels=<A> does not match number of samples=<B>	ラベル数<A>は、サンプル数<B>と一致しません。
+ValueError: Only integers accepted as <A> values	<A>の値として受け入れられるのは整数値のみです。
+ValueError: The palette dictionary is missing keys: <A>	パレット辞書にキーがありません。<A>
+ValueError: The truth value of a Series is ambiguous. Use a.empty, a.<A>(), a.<B>(), a.<C>() or a.<D>().	データ列(Series型)の真理値は複数の解釈がありえます。a.empty, a.bool(), a.item(), a.any() または a.all() を試して
+ValueError: The truth value of a DataFrame is ambiguous. Use a.empty, a.<A>(), a.<B>(), a.<C>() or a.<D>().	データフレームの真理値は複数の解釈がありえます。a.empty, a.bool(), a.item(), a.any() または a.all() を試して
+ValueError: Unable to convert array of bytes/strings into decimal numbers with dtype=<A>	バイト/文字列の配列を<A>型で10進数に変換できません。
+ValueError: Unknown label type: <A>	<A>は、未知のラベル種類です。
+ValueError: With n_samples=<A>, test_size=<B> and train_size=None, the resulting train set will be empty. Adjust any of the aforementioned parameters.	n_samples=<A>, test_size=<B>, train_size=None の場合，得られる訓練セットは空になります。上記のパラメータを調整してください。
+ValueError: X has <A> features, but LinearRegression is expecting <B> features as input.	X には <A>個の特徴量がありますが、LinearRegression は入力として <B>つの特徴量を求めています。
+ValueError: X has <A> features, but MLPClassifier is expecting <B> features as input.	X には <A> つの特徴量がありますが，MLPClassifier は入力として <B> の特徴量を求めています。
+ValueError: cannot reindex from a duplicate axis	重複した軸から再インデックスできません
+ValueError: cannot reshape array of size <A> into shape (<B>,<C>)	サイズ <A> の配列を (<B>,<C>) の形状に変形できません。
+ValueError: could not convert string to float: <A>	文字列<A>を浮動小数点数(float)に変換できませんでした。
+ValueError: empty separator	空のセパレーター
+ValueError: expr must be a string to be evaluated, <A> given	exprは、評価できる文字列でなければなりませんが、<A>が与えられました。
+ValueError: index must be a MultiIndex to unstack, <A> was passed	indexは、マルチインデックスでなければスタックを解除できないが、<A>が渡された。
+ValueError: invalid literal for <A>() with base <B>: <C>	<C>は、(<B>進数だとしても）整数に変換できない文字列です。
+ValueError: method must be either <A>, <B>, <C>, or a callable, <D> was supplied	メソッドはA、B、C、またはcallableのいずれかでなければならず、Dは供給された。
+ValueError: not enough values to unpack (expected <A>, got <B>)	展開するのに十分な値がありません。<A>個欲しいところにB個しかありません。
+ValueError: num must be <A> <= num <= <B>, not <C>	num は <A> <= num <= <B> です。<C> ではありませんよ。
+ValueError: operands could not be broadcast together with shapes (<A>,) (<B>,)	オペランドは、(<A>,) (<B>,)の ... うーん、何だろう？ このエラー？？？
+ValueError: pos_label=<A> is not a valid label. It should be one of <B>	pos_label=<A> は正しいラベルではありません。<B>のいずれかであるべきです。
+ValueError: shape mismatch: objects cannot be broadcast to a single shape	形状の不一致です。：オブジェクトは単一の形状にブロードキャストすることはできません。
+ValueError: substring not found	部分文字列が見つかりませんでした。
+ValueError: too many values to unpack (expected <A>)	展開する値が多すぎます（A個、欲しいところです）。
+ValueError: x and y must be the same size	x と y は同じ大きさにしてください。
+ValueError: y_true and y_pred have different number of output (<A>!=<B>)	y_trueとy_predは出力数が(<A>!=<B>)のように異なります。
+ZeroDivisionError: division by zero	ゼロによる除算を行いました
+IndexError: deque index out of range	dequeのインデックスが範囲外です。
+TypeError: <A>() argument <B> must be str, not builtin_function_or_method	<A>()の引数<B>は、文字列です。組み込み関数ではありません。
+JSONDecodeError: Expecting property name enclosed in double quotes: line <A> column <B> (char <C>)	JSON形式の構文エラーが発生しました。二重引用符で囲まれたプロパティ名を期待：行<A>列<B>（char <C>）
+ValueError: list.remove(x): x not in list	xがリストにありません。そのため、removeできません。
+TypeError: <A>(): attribute name must be string	<A>()のプロパティ名は文字列です。
+ValueError: <A> is not in deque	<A>は両端キューにありません。
+TypeError: cannot unpack non-iterable <A> object	<A>オブジェクトは展開できません。
+TypeError: can't convert expression to float	式を float に変換できません。
+IndexError: pop index out of range	範囲外のインデックスからポップしようとしました。
+TypeError: <A>() arg <B> must be a type or tuple of types	<A>()の引数　<B> は、型または型のタプルで与えてください。
+TypeError: cannot determine truth value of Relational	Relational の真理値を決定できない。
+ValueError: deque.remove(x): x not in deque	x が キューにありません。そのため、removeできません。
+IndexError: pop from empty list	空のリストからのポップしました。
+ValueError: math domain error	mathライブラリの領域（ドメイン）が間違っています
+ValueError: invalid __array_struct__	無効な__array_struct__。
+ValueError: <A>() base must be >= <B> and <= <C>, or <D>	<A>() のベースは >= <B> かつ <= <C>, または <D> でなければならない。
+TypeError: <A>() 3rd argument not allowed unless all arguments are integers	<A>()の第3引数は、全ての引数が整数でない限り、指定できません。
+SyntaxError: unexpected EOF while parsing (<A>, line <B>)	<B>行目で構文エラーです。コードが途中で終わっています。
+TypeError: Expected <A> arguments, got <B>	<A>の引数が必要なところに、残念ながら<B>が与えられた
+TypeError: string argument without an encoding	引数には、エンコーディング(encoding)が必ず必要です。
+ValueError: tuple.index(x): x not in tuple	xはタプルの中にありませんよ。
+TypeError: attribute name must be string, not <A>	属性名は文字列でなければならない、<A>ではない
+IndexError: list assignment index out of range	リストへ代入しようとしたが、インデックスがリストの大きさを超えています。
+UnboundLocalError: local variable <A> referenced before assignment	代入前にローカル変数 <A> を使おうとした。
+MisconfigurationException: No <A> method defined to run <B>.	<B>を実行するためのAメソッドが定義されていません。
+SyntaxError: closing parenthesis <A> does not match opening parenthesis <B> (<C>, line <D>)	構文エラーです。閉じ括弧<A>が開き括弧<B>と一致していません。
+ValueError: DataFrame constructor not properly called!	DataFrameのコンストラクタが正しく呼び出されていない!
+TypeError: <A>() argument <B> must be str, not list	<A>()の引数<B>は文字列です。リストではありません。
+TypeError: argument for <A>() given by name (<B>) and position (position <C>)	<A>()の引数は、名前 <B> と位置 <C>で与えられます。
+TypeError: Can only merge Series or DataFrame objects, a <A> was passed.	データ列とデータフレームだけ結合できます。しかし、<A> のオブジェクトを結合しようとしました。
+SyntaxError: EOL while scanning string literal (<A>, line <B>)	<B>行目は、文字列リテラルを閉じ忘れています。
+RecursionError: maximum recursion depth exceeded in comparison	再帰呼び出しがスタックオバーフローを起こしました
+IndentationError: unindent does not match any outer indentation level (<A>, line <B>)	<B>行目で構文エラーです。インデントの深さが、どの外側のインデントの深さにもマッチしません。
+SyntaxError: can't assign to function call (<A>, line <B>)	<B>行目で構文エラーです。関数呼び出しには代入できません。
+IndentationError: unexpected indent (<A>, line <B>)	<B>行目で構文エラーです。ここにはインデントはいらないはずです。
+TypeError: <A>() takes <B> positional arguments but <C> was given	<A>()は引数の数が異なります。<A>()は<B>つの引数を取ります。
+SyntaxError: <A> outside function (<B>, line <C>)	<C>行目で構文エラーです。<A>は関数の中でのみ使えます。
+TypeError: <A>() takes no keyword arguments	<A>()はキーワード引数を取りません。
+SyntaxError: unexpected character after line continuation character (<A>, line <B>)	<B>行目で構文エラーです。予期しない文字があります。
+TypeError: <A> object is not reversible	<A>オブジェクトはリバーシブルではありません。
+TypeError: an integer is required (got type generator)	整数が必要です(型ジェネレータではありません)
+TabError: inconsistent use of tabs and spaces in indentation (<A>, line <B>)	<B>行目で構文エラーです。タブとスペースの使い方に一貫性がありません。
+TypeError: <A>() expected a character, but string of length <B> found	<A>()の引数は文字であるべきだが、長さ<B>の文字列が与えられた。
+TypeError: <A>() expected string of length <B>, but int found	<A>()は長さ <B>の文字列を取るが、整数が与えられた。
+TypeError: Cannot perform <A> with a dtyped <B> array and scalar of type <C>	<B>型の配列と<C>型の数値では、<A>を実行できません。
+ValueError: shapes (<A>,) and (<B>,) not aligned: <C> (dim <D>) != E (dim F)	各ベクトルの次元が異なり、計算できません。
+ValueError: The truth value of an array with more than one element is ambiguous. Use <A>() or <B>()	一つ以上の要素がある配列は真なのか判定できません。
+TypeError: cannot perform reduce with flexible type	自由な型であるため、値を一つにまとめることができません。（何のこっちゃ？）
+TimeoutError: Time Limit Exceeded	時間制限を超過しました

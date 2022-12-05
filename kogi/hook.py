@@ -1,9 +1,11 @@
+import re
 import traceback
+import warnings
 from functools import wraps
 
 #from kogi.logger import sync_lazy_loggger
 
-from .conversation import catch_and_start_dialog, call_and_start_dialog
+from .conversation import catch_and_start_kogi, call_and_start_kogi
 from IPython.core.interactiveshell import InteractiveShell, ExecutionResult
 
 
@@ -12,26 +14,28 @@ SHOW_TRACEBACK = InteractiveShell.showtraceback
 SHOW_SYNTAXERROR = InteractiveShell.showsyntaxerror
 
 
-import re
+KOGI_PAT = re.compile('#\\s*kogi\\s*(.*)')
+HIRA_PAT = re.compile('[あ-を]')
 
-KOGI_PAT=re.compile('#\\s*kogi\\s*(.*)')
-HIRA_PAT=re.compile('[あ-を]')
 
 def _find_action(text):
     return re.findall(KOGI_PAT, text)
 
+
 def _call_kogi(code, actions):
-    ss=[]
+    ss = []
     for action in actions:
-        if re.search(HIRA_PAT, action):            
+        if re.search(HIRA_PAT, action):
             ss.append(action)
     if len(ss) > 0:
-        call_and_start_dialog(code, ss)
+        call_and_start_kogi(code, ss)
         return True
     return False
 
+
 _DETECTOR = []
 _RUNNER = {}
+
 
 def kogi_register_hook(key, runner, detector):
     if key is not None and runner is not None:
@@ -39,23 +43,26 @@ def kogi_register_hook(key, runner, detector):
     if detector is not None:
         _DETECTOR.append(detector)
 
+
 def kogi_run_cell(ipy, raw_cell, kwargs):
-    directive = None
-    result = None
-    actions = _find_action(raw_cell)
-    if len(actions) > 0:
-        if _call_kogi(raw_cell, actions):
-            return RUN_CELL(ipy, 'pass', **kwargs)
-        for detector in _DETECTOR:
-            key = detector(actions[0], raw_cell)
-            if key in _RUNNER:
-                result = _RUNNER[key](ipy, raw_cell, directive[0])
-                if not isinstance(result, ExecutionResult):
-                    result = RUN_CELL(ipy, 'pass', **kwargs)
-                return result
-    if result is None:
-        result = RUN_CELL(ipy, raw_cell, kwargs)
-    return result
+    with warnings.catch_warnings():
+        warnings.simplefilter('error', SyntaxWarning)
+        result = None
+        actions = _find_action(raw_cell)
+        if len(actions) > 0:
+            if _call_kogi(raw_cell, actions):
+                return RUN_CELL(ipy, 'pass', **kwargs)
+            for detector in _DETECTOR:
+                key = detector(actions[0], raw_cell)
+                if key in _RUNNER:
+                    result = _RUNNER[key](
+                        ipy, raw_cell, actions[0], catch_and_start_kogi)
+                    if not isinstance(result, ExecutionResult):
+                        result = RUN_CELL(ipy, 'pass', **kwargs)
+                    return result
+        if result is None:
+            result = RUN_CELL(ipy, raw_cell, kwargs)
+        return result
 
 
 def change_run_cell(func):
@@ -79,7 +86,7 @@ def change_showtraceback(func):
         try:
             ipyshell = args[0]
             code = ipyshell.user_global_ns['In'][-1]
-            catch_and_start_dialog(code=code)
+            catch_and_start_kogi(code=code)
         except:
             traceback.print_exc()
     return showtraceback

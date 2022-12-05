@@ -1,5 +1,4 @@
 import builtins
-from kogi.dialog import kogi_catch
 from .timeout import exec_with_timeout
 from .judge import render_result, render_footer
 
@@ -93,11 +92,11 @@ def judge_cpc(ipy, code, data, context):
     render_footer(data)
 
 
-def kogi_judge(ipy, code, data, judge_fn):
+def kogi_judge(ipy, code, data, judge_fn, catch_and_start_kogi):
     try:
         context = {}
         judge_fn(ipy, code, data, context)
     except SyntaxError as e:
-        kogi_catch(code=code, context=context, exception=e)
+        catch_and_start_kogi(code=code, context=context, exception=e)
     except:
-        kogi_catch(code=code, context=context)
+        catch_and_start_kogi(code=code, context=context)

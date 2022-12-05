@@ -1,16 +1,25 @@
 /* https: //note.com/rocky_days_/n/n5ce4576abca5 */
 html {
-    --box-background: #9CC5E6;
     /* 勿忘草（わすれなぐさ） */
+    --box-background: #9CC5E6;
     --talk-background: #eee;
     --talk-color: #333;
-
+    /* 桜色 */
+    --code-background: #ffeeed;
+    --code-color: #111;
 }
 
 html[theme=dark] {
     --box-background: #324356;
     --talk-background: #333;
     --talk-color: #eee;
+    --code-background: #111;
+    --code-color: #eee;
+}
+
+pre {
+    background: (--code-background);
+    color: (--code-code);
 }
 
 .sb-box {

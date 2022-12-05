@@ -4,7 +4,7 @@ from .content import ICON, JS, CSS
 from ._google import google_colab
 
 from IPython.display import display, HTML, JSON
-from kogi.settings import kogi_log, translate, model_generate, print_nop
+from kogi.service import translate, model_generate, print_nop
 
 
 RMT_HTML = '''

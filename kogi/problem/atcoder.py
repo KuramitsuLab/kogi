@@ -49,43 +49,6 @@ def download_atcoder_problem(directive):
         return data
     except Timeout:
         return dict(error='ネットワーク接続できません')
-    # problem_id = data['problem_id'].replace('_', '/').upper()
-    # print(problem_id, ss)
-    # for filename in ss[1:]:
-    #     if not filename.endswith('.txt'):
-    #         continue
-    #     key = f'{problem_id}/{filename}'
-    #     if key in SAMPLE:
-    #         p = SAMPLE[key]
-    #         data['testcases'].append(p)
-    #         continue
-    #     url = f'{HOST}/{problem_id}/in/{filename}?dl=0'
-    #     print(url)
-    #     response = requests.get(url, timeout=(3.0, 7.5))
-    #     print(response.status_code)
-    #     if response.status_code != 200:
-    #         print('ファイルがありません', url)
-    #         continue
-    #     history = response.history
-    #     if history:
-    #         print('history:', history)
-    #         print('history_url:', history[0].url)
-    #         print('history_status_code:', history[0].status_code)
-    #     input_text = response.text
-    #     print(input_text)
-    #     print(len(input_text))
-    #     url = f'{HOST}/{problem_id}/out/{filename}?dl=0'
-    #     print(url)
-    #     response = requests.get(url, timeout=(3.0, 7.5))
-    #     print(response.status_code)
-    #     if response.status_code != 200:
-    #         print('ファイルがありません', url)
-    #         continue
-    #     output_text = response.text
-    #     p = dict(title=filename, input=input_text, output=output_text)
-    #     SAMPLE[key] = p
-    #     data['testcases'].append(p)
-    # return data
 
 
 if __name__ == '__main__':

@@ -2,72 +2,71 @@ import builtins
 from IPython.display import display, HTML
 from IPython import get_ipython
 from .timeout import exec_with_timeout
-# from kogi.exception_hook import SHOW_TRACEBACK, SHOW_SYNTAXERROR
-from kogi.dialog import kogi_catch
+#from kogi.dialog import kogi_catch
 
-_lines = None
-_outputs = None
-
-
-def input_for_judge(s=''):
-    global _lines
-    if _lines is not None:
-        if len(_lines) > 0:
-            return _lines.pop(0)
-        return ''
-    return builtins.input(s)
+# _lines = None
+# _outputs = None
 
 
-def print_for_judge(*a, **kw):
-    if _outputs is not None:
-        sep = kw.get('sep', ' ')
-        end = kw.get('end', '\n')
-        s = sep.join([str(s) for s in a]) + end
-        _outputs.append(s)
-    else:
-        builtins.print(*a, **kw)
+# def input_for_judge(s=''):
+#     global _lines
+#     if _lines is not None:
+#         if len(_lines) > 0:
+#             return _lines.pop(0)
+#         return ''
+#     return builtins.input(s)
 
 
-def judge(code, data):
-    global _lines, _outputs
-    problem_id = data['problem_id']
-    # global_vars = get_ipython().user_global_ns.copy()
-    global_vars = {
-        'print': print_for_judge, 'input': input_for_judge,
-    }
-    try:
-        ac = 0
-        for i, testcase in enumerate(data['testcases']):
-            title = testcase.get('title', f'Case {i+1}')
-            inputData = testcase['input']
-            outputData = testcase['output']
-            _lines = [s for s in inputData.split('\n') if len(s) > 0]
-            _outputs = []
-            # local_vars = {
-            #     'print': print_for_judge, 'input': input_for_judge,
-            # }
-            exec_with_timeout(code, global_vars, None, 10)
-            resultData = ''.join(_outputs)
-            ac += 1 if outputData == resultData else 0
-            render_result(title, inputData, resultData, outputData)
-        render_footer(data)
-    #     log(type='atcoder', problem=problem_id, ac=ac, code=code)
-    except SyntaxError:
-        SHOW_SYNTAXERROR(get_ipython())
-        slots = dict(
-            problem_id=problem_id,
-        )
-        kogi_catch(code=code, context=slots)
-    except:
-        SHOW_TRACEBACK(get_ipython())
-        slots = dict(
-            problem_id=problem_id,
-            vars=global_vars,
-        )
-        kogi_catch(code=code, context=slots)
-    finally:
-        _lines = None
-        _outputs = None
+# def print_for_judge(*a, **kw):
+#     if _outputs is not None:
+#         sep = kw.get('sep', ' ')
+#         end = kw.get('end', '\n')
+#         s = sep.join([str(s) for s in a]) + end
+#         _outputs.append(s)
+#     else:
+#         builtins.print(*a, **kw)
+
+
+# def judge(code, data):
+#     global _lines, _outputs
+#     problem_id = data['problem_id']
+#     # global_vars = get_ipython().user_global_ns.copy()
+#     global_vars = {
+#         'print': print_for_judge, 'input': input_for_judge,
+#     }
+#     try:
+#         ac = 0
+#         for i, testcase in enumerate(data['testcases']):
+#             title = testcase.get('title', f'Case {i+1}')
+#             inputData = testcase['input']
+#             outputData = testcase['output']
+#             _lines = [s for s in inputData.split('\n') if len(s) > 0]
+#             _outputs = []
+#             # local_vars = {
+#             #     'print': print_for_judge, 'input': input_for_judge,
+#             # }
+#             exec_with_timeout(code, global_vars, None, 10)
+#             resultData = ''.join(_outputs)
+#             ac += 1 if outputData == resultData else 0
+#             render_result(title, inputData, resultData, outputData)
+#         render_footer(data)
+#     #     log(type='atcoder', problem=problem_id, ac=ac, code=code)
+#     except SyntaxError:
+#         SHOW_SYNTAXERROR(get_ipython())
+#         slots = dict(
+#             problem_id=problem_id,
+#         )
+#         kogi_catch(code=code, context=slots)
+#     except:
+#         SHOW_TRACEBACK(get_ipython())
+#         slots = dict(
+#             problem_id=problem_id,
+#             vars=global_vars,
+#         )
+#         kogi_catch(code=code, context=slots)
+#     finally:
+#         _lines = None
+#         _outputs = None
 
 
 JUDGE_CSS = '''

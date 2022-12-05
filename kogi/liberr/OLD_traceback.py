@@ -1,4 +1,3 @@
-from kogi.liberr.emodel import ErrorModel
 import sys
 import linecache
 from numbers import Number

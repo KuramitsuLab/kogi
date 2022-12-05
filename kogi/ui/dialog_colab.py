@@ -1,10 +1,9 @@
 import traceback
-from .content import JS, CSS
+from .content import JS, CSS, ICON
 from ._google import google_colab
 
 from IPython.display import display, HTML
-from kogi.settings import kogi_get
-from .dialog import Conversation
+from kogi.service import kogi_get
 
 
 _DIALOG_COLAB_HTML = '''
@@ -26,12 +25,13 @@ _DIALOG_HTML = '''
 </div>
 '''
 
+
 def display_main(target, placeholder=''):
     data = dict(
         script=JS('dialog.js'),
         placeholder=placeholder,
         target=target,
-        height=str(kogi_get('chat_height', 180))
+        height=str(kogi_get('chat_height', 300))
     )
     DHTML = _DIALOG_COLAB_HTML if google_colab else _DIALOG_HTML
     display(HTML(CSS('dialog.css') + DHTML.format(**data)))
@@ -52,8 +52,11 @@ _BOT_HTML = '''
 </div>
 '''
 
+
 def _htmlfy_bot(message, target=''):
-    return _BOT_HTML.format(message)
+    message['icon'] = ICON(message['icon'])
+    return _BOT_HTML.format(**message)
+
 
 _USER_HTML = '''
 <div class="sb-box">
@@ -67,10 +70,13 @@ _USER_HTML = '''
 </div>
 '''
 
+
 def _htmlfy_user(message):
-    return _USER_HTML.format(message)
+    message['icon'] = ICON(message['icon'])
+    return _USER_HTML.format(**message)
 
 ###
+
 
 APPEND_JS = '''
 <script>
@@ -83,6 +89,7 @@ if(target !== undefined) {{
 </script>
 '''
 
+
 def display_talk(html, dialog_target=None):
     if dialog_target:
         html = html.replace('\\', '\\\\')
@@ -91,11 +98,11 @@ def display_talk(html, dialog_target=None):
     else:
         display(HTML(CSS('dialog.css') + html))
 
-def display_dialog(chatbot: Conversation, start=None, placeholder='質問はこちらに'):
+
+def display_dialog(chatbot, start=None, placeholder='質問はこちらに'):
     global _DIALOG_ID
     target = f'output{_DIALOG_ID}'
     _DIALOG_ID += 1
-
     display_main(target, placeholder)
 
     def display_user(message):
@@ -128,6 +135,7 @@ def display_dialog(chatbot: Conversation, start=None, placeholder='質問はこ�
             except:
                 display_bot('バグで処理に失敗しました。ごめんなさい')
                 traceback.print_exc()
+
         def likeit(conversation_id, how):
             nonlocal chatbot
             try:
@@ -135,9 +143,8 @@ def display_dialog(chatbot: Conversation, start=None, placeholder='質問はこ�
             except:
                 display_bot('バグで処理に失敗しました。ごめんなさい')
                 traceback.print_exc()
-        google_colab.register_callback('notebook.likeit', ask)
+        google_colab.register_callback('notebook.ask', ask)
         google_colab.register_callback('notebook.likeit', likeit)
-
     if start:
         display_bot(start)
     return display_bot, display_user

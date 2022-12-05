@@ -1,9 +1,8 @@
 import sys
 from IPython import get_ipython
 
-from .settings import (
-    model_generate, translate_en, translate_ja,
-    isEnglishDemo, send_slack, kogi_get, kogi_log, kogi_print
+from .service import (
+    model_generate, translate, isEnglishDemo, slack_send
 )
 
 from .ui import google_colab
@@ -17,20 +16,22 @@ else:
     except ModuleNotFoundError:
         from .ui.dialog_colab import display_dialog
 
-from .liberr import kogi_print_exc, replace_eparams
+from .liberr import kogi_exc
+from .render import Render
 
-def english_subtitle(text):
-    if isEnglishDemo():
-        if len(text)==0:
-            return text
-        n_ascii = sum(1 for c in text if ord(c) < 128)
-        #print(text, n_ascii, len(text), n_ascii / len(text))
-        if (n_ascii / len(text)) < 0.4:  # 日本語
-            t = translate_ja(text)
-            # print(t)
-            if t is not None:
-                return f'{text}<br><i>{t}</i>'
-    return text
+
+# def english_subtitle(text):
+#     if isEnglishDemo():
+#         if len(text) == 0:
+#             return text
+#         n_ascii = sum(1 for c in text if ord(c) < 128)
+#         #print(text, n_ascii, len(text), n_ascii / len(text))
+#         if (n_ascii / len(text)) < 0.4:  # 日本語
+#             t = translate_ja(text)
+#             # print(t)
+#             if t is not None:
+#                 return f'{text}<br><i>{t}</i>'
+#     return text
 
 
 class ConversationAI(object):
@@ -38,9 +39,6 @@ class ConversationAI(object):
     records: list
 
     def __init__(self, slots=None):
-        # global _DIALOG_ID
-        # self.cid= _DIALOG_ID
-        # DIALOG_ID += 1
         self.slots = slots or {}
         self.records = []
 
@@ -48,7 +46,8 @@ class ConversationAI(object):
         return self.slots.get(key, value)
 
     def update(self, context: dict):
-        return self.slots.update(context)
+        if context is not None:
+            self.slots.update(context)
 
     def ask(self, input_text):
         output_text = self.response(input_text)
@@ -66,15 +65,15 @@ class ConversationAI(object):
         response_id = len(self.records)
         message['response_id'] = response_id
         self.records.append((input_text, message))
-    
+
     def get_record(self, response_id):
         return self.records[response_id]
 
     def ask_message(self, input_text):
         messages = self.response_message(input_text)
         if isinstance(messages, list):
-           for message in messages:
-            self.record(input_text, message)
+            for message in messages:
+                self.record(input_text, message)
         else:
             self.record(input_text, messages)
         return messages
@@ -101,36 +100,47 @@ class ConversationAI(object):
         return message
 
 
-
-
-class Chatbot(ConversationAI):
-
-
-
 _DefaultChatbot = ConversationAI()
+
 
 def set_chatbot(chatbot):
     global _DefaultChatbot
     _DefaultChatbot = chatbot
-    
 
-def call_and_start_dialog(actions):
+
+def call_and_start_kogi(actions, code: str = None, context: dict = None):
     for user_text in actions:
-        #_DefaultChatbot.update(context)
+        # _DefaultChatbot.update(context)
         messages = _DefaultChatbot.ask_message(user_text)
+        # print(messages)
         display_dialog(_DefaultChatbot, messages)
-        return 
+        return
 
 
-def catch_and_start_dialog(exc_info=None, code: str = None, context: dict = None, exception=None, enable_dialog=True):
+def error_message(record):
+    r = Render()
+    if 'emsg_rewritten' in record:
+        r.println(record['emsg_rewritten'], bold=True)
+        r.println(record['emsg'], color='#888888')
+    else:
+        r.println(record['emsg'])
+        r.println(record['_epat'])
+    # print(record)
+    if '_stacks' in record:
+        for stack in record['_stacks']:
+            if 'site-packages' in stack['filename']:
+                continue
+            r.extend(stack, div='<pre>{}</pre>')
+    else:
+        r.extend(record, div='<pre>{}</pre>')
+    r.appendHTML('<button>いいね</button>')
+    return r.get_message()
+
+
+def catch_and_start_kogi(exc_info=None, code: str = None, context: dict = None, exception=None, enable_dialog=True):
     if exc_info is None:
         exc_info = sys.exc_info()
-    slots = kogi_print_exc(code=code, exc_info=exc_info, caught_ex=exception, translate_en=translate_en)
-    if context is not None:
-        slots.update(context)
-    if enable_dialog:
-        start = slots.get('translated', 'おはよう')
-        _DefaultChatbot.update(slots)
-        if context is not None:
-            _DefaultChatbot.update(context)
-        display_dialog(_DefaultChatbot, start)
+    record = kogi_exc(code=code, exc_info=exc_info,
+                      caught_ex=exception, translate=translate)
+    messages = error_message(record)
+    display_dialog(_DefaultChatbot, start=messages)

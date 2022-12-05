@@ -28,6 +28,7 @@ def kogi_set(**kwargs):
     if 'slack_key' in kwargs:
         load_slack(kwargs['slack_key'])
 
+
 def isEnglishDemo():
     return kogi_get('english_demo', False)
 
