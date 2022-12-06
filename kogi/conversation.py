@@ -69,9 +69,10 @@ class ConversationAI(object):
         if isinstance(ms, list) or isinstance(ms, tuple):
             if len(ms) == 3:
                 return [
-                    self.messaegfy(ms[0], name='コギー', icon='kogi-fs8.png'),
-                    self.messaegfy(ms[1], name='ぱんち', icon='pan-fs8.png'),
-                    self.messaegfy(ms[2], name='OpenAI', icon='openai-fs8.png'),
+                    self.messagefy(ms[0], name='コギー', icon='kogi-fs8.png'),
+                    self.messagefy(ms[1], name='ぱんち', icon='pan-fs8.png'),
+                    self.messagefy(ms[2], name='OpenAI',
+                                   icon='openai-fs8.png'),
                 ]
             return [self.messagefy(m) for m in ms]
         return self.messagefy(self.response(input_text))
@@ -83,6 +84,8 @@ class ConversationAI(object):
             message['name'] = name
         if 'icon' not in message:
             message['icon'] = icon
+        if 'html' not in message:
+            message['html'] = message['text']
         return message
 
 
