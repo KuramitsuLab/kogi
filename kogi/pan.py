@@ -6,20 +6,20 @@ import pandas as pd
 from IPython import get_ipython
 from kogi.service import *
 from .conversation import ConversationAI, set_chatbot
+try:
+    import pegtree as pg
+except ModuleNotFoundError:
+    os.system('pip install pegtree')
+    import pegtree as pg
 
-kogi_set(
-    model_id='myst7725/codepan1117_IN3'
-)
+#デバッグモード用
+def debug_print(text, debug=False):
+    if debug == True:
+        print(text)
 
 
-def extract_tag(text):
-    if text.startswith('<'):
-        tag, end_tag, text = text.partition('>')
-        return tag+end_tag, text
-    return '', text
-
-
-# 型取得
+#ユーザの入力→モデルの入力
+##実行時型取得
 KOGI_TYPEMAP = {
     'bool': '_結果_',
     'int': '_整数_',
@@ -32,7 +32,6 @@ KOGI_TYPEMAP = {
     'DataFrame': '_データフレーム_',
 }
 
-
 def get_kogitype(value):
     py_type = type(value).__name__
     kg_type = KOGI_TYPEMAP.get(py_type, None)
@@ -44,10 +43,7 @@ def get_kogitype(value):
         return '_イテラブル_'
     return f'_結果_'
 
-
-# みんなが使いそうな変数
-possy = {'n': '_整数_', 'N': '_整数_', }
-
+possy = {'n': '_整数_', 'N': '_整数_', }# みんなが使う変数名
 
 def get_variable_type(name):
     shell = get_ipython()
@@ -57,7 +53,6 @@ def get_variable_type(name):
     else:  # 変数が未定義な場合
         return possy.get(name, '_結果_')
 
-
 def eval_code_type(code):
     shell = get_ipython()
     try:
@@ -66,14 +61,7 @@ def eval_code_type(code):
     except:
         return '_結果_'
 
-
-# パーサ
-try:
-    import pegtree as pg
-except ModuleNotFoundError:
-    os.system('pip install pegtree')
-    import pegtree as pg
-
+##pegtree
 _PEG = '''
 
 Start = { 
@@ -98,25 +86,21 @@ Variable = { [A-Za-z_0-9]+ #Name }  // a
 
 _parser = pg.generate(pg.grammar(_PEG))
 
-
 def scan_dataframes():
     column_maps = {}
     dataframe_names = []
     shell = get_ipython()
     user_ns = shell.user_ns
     for name in user_ns:
-        # 仮
-        if name[0] == "_":
+        if name[0] == "_":# 仮
             pass
         else:
             value = user_ns[name]
             if isinstance(value, pd.DataFrame):
                 dataframe_names.append(name)
                 for column in list(value.columns):
-                    #column_maps[column] = name
                     column_maps.setdefault(column, name)
     return dataframe_names, column_maps
-
 
 def detect_string_type(s):
     content = s[1:-1]  # クオートをとる
@@ -126,13 +110,12 @@ def detect_string_type(s):
         return '_文字_'
     return '_文字列_'
 
-
 def append_map(maps, key, value):
     if key not in maps:
         maps[key] = []
     maps[key].append(value)
 
-
+##parser
 def parse(text):
     dataframe_names, column_maps = scan_dataframes()
     after_maps = {}
@@ -167,23 +150,23 @@ def parse(text):
     return ''.join(ss).replace('_', ''), after_maps
 
 
-# モデル出力→ユーザへの出力
+#モデル出力→ユーザへの出力
+##下線区切り
 def get_words(text):
     words = []
     while True:
         if len(text) > 0:
             pos1 = text.find('_')
-            pos2 = text.find('_', pos1+1)+1
-            if pos1 == False or pos2 == False:
+            pos2 = text.find('_', pos1+1)
+            if pos1 == -1 or pos2 == -1:
                 break
             else:
-                word = text[pos1:pos2]
+                word = text[pos1:pos2+1]
                 words.append(word)
-                text = text[pos1+1:]
+                text = text[pos2:]
         else:
             break
     return words
-
 
 def make_output(text, dic):
     words = get_words(text)
@@ -195,18 +178,34 @@ def make_output(text, dic):
     return text
 
 
-class PanAI(ConversationAI):
-    def response(self, user_input):
-        user_input, after_maps = parse(user_input)
-        #print("model_input:", user_input)
-        response_text = model_generate(user_input)
-        #print("model_output:", response_text)
-        response_text = make_output(response_text, after_maps)
+#<tag>省略
+def extract_tag(text):
+    if text.startswith('<'):
+        tag, end_tag, text = text.partition('>')
+        return tag+end_tag, text
+    return '', text
 
+
+#モデル
+kogi_set(
+    model_id='myst7725/codepan1117_IN3'
+)
+
+
+
+class PanAI(ConversationAI):
+    
+    def response(self, user_input):
+        user_input, after_maps = parse(user_input)#ユーザ入力→モデルの入力
+        debug_print("user_input:"+user_input, debug=debug)
+        response_text = model_generate(user_input)#予測
+        debug_print("response_text:"+response_text, debug=debug)
+        response_text = make_output(response_text,after_maps)#モデルの出力→ユーザへの出力
         if response_text is None:
             return 'ZZ.. zzz.. 眠む眠む..'
+
         tag, text = extract_tag(response_text)
         return text
 
-
+debug = False
 set_chatbot(PanAI())
