@@ -9,7 +9,7 @@ TERM = {
 }
 
 
-def term_color(text, color=None, bold=False):
+def term_color(text, color=None, background=None, bold=False):
     if color and color in TERM:
         text = TERM[color].format(text)
     if bold:
@@ -17,9 +17,13 @@ def term_color(text, color=None, bold=False):
     return text
 
 
-def html_color(text, color=None, bold=False):
-    if color:
-        text = f'<font color="{color}">{text}</font>'
+def html_color(text, color=None, background=None, bold=False):
+    if color and background:
+        text = f'<span style="color: {color}; background: {background};">{text}</span>'
+    elif color:
+        text = f'<span style="color: {color};">{text}</span>'
+    elif background:
+        text = f'<span style="background: {background};">{text}</span>'
     if bold:
         text = f'<b>{text}</b>'
     return text
@@ -47,17 +51,17 @@ class Render(object):
         self.terms.append(text)
         self.htmls.append(text)
 
-    def print(self, text='', color=None, bold=False):
+    def print(self, text='', color=None, background=None, bold=False):
         text = str(text)
         self.texts.append(text)
-        self.terms.append(term_color(text, color, bold))
-        self.htmls.append(html_color(tohtml(text), color, bold))
+        self.terms.append(term_color(text, color, background, bold))
+        self.htmls.append(html_color(tohtml(text), color, background, bold))
 
-    def println(self, text='', color=None, bold=False):
+    def println(self, text='', color=None, background=None, bold=False):
         text = str(text)+'\n'
         self.texts.append(text)
-        self.terms.append(term_color(text, color, bold))
-        self.htmls.append(html_color(tohtml(text), color, bold))
+        self.terms.append(term_color(text, color, background, bold))
+        self.htmls.append(html_color(tohtml(text), color, background, bold))
 
     def extend(self, render, div='<div>{}</div>'):
         if isinstance(render, Render):
@@ -89,7 +93,7 @@ class Render(object):
     def get_message(self, heading=''):
         m = {}
         if heading != '':
-            self.println(heading, bold=True)
+            heading = html_color(heading, bold=True)+'<br>'
         m['text'] = self.text()
-        m['html'] = self.html()
+        m['html'] = heading+self.html()
         return m
