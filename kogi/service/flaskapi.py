@@ -37,6 +37,7 @@ def model_generate(text, max_length=128, beam=1):
         # print(text, type(output), output)
         if isinstance(output, (list, tuple)):
             output = output[0]
-        return output.get('generated_text', '')
+        output = output.get('generated_text', '')
+        return output.replace('<tab>', '    ').replace('<nl>', '\n')
     except Exception as e:
         return f'<status>{e}'

@@ -30,15 +30,16 @@ def tohtml(text):
 
 
 class Render(object):
-    def __init__(self):
+    def __init__(self, div='{}'):
+        self.div = div
         self.texts = []
         self.htmls = []
         self.terms = []
 
     def update(self, data):
-        data['_text'] = ''.join(self.texts)
-        data['_html'] = ''.join(self.htmls)
-        data['_term'] = ''.join(self.terms)
+        data['_text'] = self.text()
+        data['_html'] = self.html()
+        data['_term'] = self.term()
 
     def s(self, text):
         text = str(text)
@@ -80,13 +81,15 @@ class Render(object):
         return ''.join(self.terms)
 
     def html(self):
-        return ''.join(self.htmls)
+        return self.div.format(''.join(self.htmls))
 
     def termtext(self):
         return ''.join(self.terms)
 
-    def get_message(self):
+    def get_message(self, heading=''):
         m = {}
-        m['text'] = ''.join(self.texts)
-        m['html'] = ''.join(self.htmls)
+        if heading != '':
+            m.println(heading, bold=True)
+        m['text'] = self.text()
+        m['html'] = self.html()
         return m
