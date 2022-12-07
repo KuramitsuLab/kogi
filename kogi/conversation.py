@@ -32,8 +32,10 @@ class ConversationAI(object):
         return self.slots.get(key, value)
 
     def update(self, context: dict):
-        if context is not None:
-            self.slots.update(context)
+        if context:
+            self.slots = context
+        else:
+            self.slots = {}
 
     def argparse(self, text, commands=None):
         ss = text.split()
@@ -119,7 +121,7 @@ def set_chatbot(chatbot):
 
 def call_and_start_kogi(actions, code: str = None, context: dict = None):
     for user_text in actions:
-        # _DefaultChatbot.update(context)
+        _DefaultChatbot.update(context)
         # print('@', actions)
         messages = _DefaultChatbot.ask_message(user_text)
         # print('@@', messages)
@@ -153,4 +155,7 @@ def catch_and_start_kogi(exc_info=None, code: str = None, context: dict = None, 
     record = kogi_exc(code=code, exc_info=exc_info,
                       caught_ex=exception, translate=translate)
     messages = error_message(record)
+    if context:
+        record.update(context)
+    _DefaultChatbot.update(context)
     display_dialog(_DefaultChatbot, start=messages)

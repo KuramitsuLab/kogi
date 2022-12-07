@@ -16,16 +16,16 @@ def extract_tag(text):
 
 
 def render_code(text):
-    r = Render(div='<pre>{}</pre>')
+    r = Render(div='<pre style="background: #fff2b8">{}</pre>')
     r.println(text)
-    return r.get_message('ざっくりいうと')
+    return r.get_message('こんな感じかな？')
 
 
 def fix_code(args, kw):
     if 'eline' in kw:
         eline = kw['eline']
         fixed = model_generate(f'<コード修正>{eline}')
-        r = Render(div='<pre>{}</pre>')
+        r = Render(div='<pre style="background: #fff2b8">{}</pre>')
         r.println(eline, color='red')
         r.println(fixed, color='green')
         return r.get_message('直してみたよ')
