@@ -26,7 +26,7 @@ def render_code(text):
         vars.append(var)
     r.appendHTML(text, div='<pre style="background: #fff2d8">{}</pre>')
     if len(vars) > 0:
-        r.appendHTML(' '.join(vars)+'の部分は、適切な変数、値、式に置き換えてください')
+        r.appendHTML(' '.join(vars)+'は、適切な変数、値、式に置き換えてください')
     r.appendHTML('<button>いいね</button><button>残念</button>')
     return r.get_message('こんな感じかな？')
 

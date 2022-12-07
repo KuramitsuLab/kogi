@@ -101,8 +101,8 @@ def scan_dataframes():
             if isinstance(value, pd.DataFrame):
                 dataframe_names.append(name)
                 for column in list(value.columns):
-                    #column_maps[column] = name
-                    column_maps.setdefault(column, name)
+                    column_maps[column] = name
+                    #column_maps.setdefault(column, name)
     return dataframe_names, column_maps
 
 
@@ -123,6 +123,7 @@ def append_map(maps, key, value):
 
 def parse(text):
     dataframe_names, column_maps = scan_dataframes()
+    debug_print(dataframe_names, column_maps)
     after_maps = {}
     tree = _parser(text)
     ss = []
@@ -155,13 +156,6 @@ def parse(text):
     return ''.join(ss).replace('_', ''), after_maps
 
 
-VARPAT = re.compile(r'(_[^_]+_)')
-
-
-def get_vars(text):
-    matched = re.findall(VARPAT, text)
-    print(matched)
-
 # モデル出力→ユーザへの出力
 
 
@@ -186,7 +180,9 @@ def make_output(text, dic):
 
 
 def model_transform(text, transform_before=parse, transform_after=make_output):
+    debug_print(text)
     user_input, after_maps = transform_before(text)
+    debug_print(user_input, after_maps)
     response_text = model_generate(user_input)
     if response_text is not None:
         response_text = transform_after(response_text, after_maps)
