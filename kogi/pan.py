@@ -4,11 +4,17 @@ import string
 import os
 import pandas as pd
 from IPython import get_ipython
-from kogi.service import *
+from kogi.service import debug_print, model_generate, kogi_set
 from .conversation import ConversationAI, set_chatbot
+try:
+    import pegtree as pg
+except ModuleNotFoundError:
+    os.system('pip install pegtree')
+    import pegtree as pg
 
 kogi_set(
-    model_id='NaoS2/multi-kogi'
+    model_id='NaoS2/multi-kogi',
+    debug=True,
 )
 
 
@@ -19,7 +25,8 @@ def extract_tag(text):
     return '', text
 
 
-# 型取得
+# ユーザの入力→モデルの入力
+# 実行時型取得
 KOGI_TYPEMAP = {
     'bool': '_結果_',
     'int': '_整数_',
@@ -45,8 +52,7 @@ def get_kogitype(value):
     return f'_結果_'
 
 
-# みんなが使いそうな変数
-possy = {'n': '_整数_', 'N': '_整数_', }
+possy = {'n': '_整数_', 'N': '_整数_', }  # みんなが使う変数名
 
 
 def get_variable_type(name):
@@ -67,13 +73,7 @@ def eval_code_type(code):
         return '_結果_'
 
 
-# パーサ
-try:
-    import pegtree as pg
-except ModuleNotFoundError:
-    os.system('pip install pegtree')
-    import pegtree as pg
-
+# pegtree
 _PEG = '''
 
 Start = { 
@@ -105,15 +105,13 @@ def scan_dataframes():
     shell = get_ipython()
     user_ns = shell.user_ns
     for name in user_ns:
-        # 仮
-        if name[0] == "_":
+        if name[0] == "_":  # 仮
             pass
         else:
             value = user_ns[name]
             if isinstance(value, pd.DataFrame):
                 dataframe_names.append(name)
                 for column in list(value.columns):
-                    #column_maps[column] = name
                     column_maps.setdefault(column, name)
     return dataframe_names, column_maps
 
@@ -131,6 +129,8 @@ def append_map(maps, key, value):
     if key not in maps:
         maps[key] = []
     maps[key].append(value)
+
+# parser
 
 
 def parse(text):
@@ -168,18 +168,19 @@ def parse(text):
 
 
 # モデル出力→ユーザへの出力
+# 下線区切り
 def get_words(text):
     words = []
     while True:
         if len(text) > 0:
             pos1 = text.find('_')
-            pos2 = text.find('_', pos1+1)+1
-            if pos1 == False or pos2 == False:
+            pos2 = text.find('_', pos1+1)
+            if pos1 == -1 or pos2 == -1:
                 break
             else:
-                word = text[pos1:pos2]
+                word = text[pos1:pos2+1]
                 words.append(word)
-                text = text[pos1+1:]
+                text = text[pos2:]
         else:
             break
     return words
@@ -195,18 +196,29 @@ def make_output(text, dic):
     return text
 
 
-class PanAI(ConversationAI):
-    def response(self, user_input):
-        user_input, after_maps = parse(user_input)
-        #print("model_input:", user_input)
-        response_text = model_generate(user_input)
-        #print("model_output:", response_text)
-        response_text = make_output(response_text, after_maps)
+# <tag>省略
+def extract_tag(text):
+    if text.startswith('<'):
+        tag, end_tag, text = text.partition('>')
+        return tag+end_tag, text
+    return '', text
 
+
+class PanAI(ConversationAI):
+
+    def response(self, user_input):
+        user_input, after_maps = parse(user_input)  # ユーザ入力→モデルの入力
+        debug_print("user_input:"+user_input)
+        response_text = model_generate(user_input)  # 予測
         if response_text is None:
             return 'ZZ.. zzz.. 眠む眠む..'
+        debug_print("response_text:"+response_text)
+        response_text = make_output(
+            response_text, after_maps)  # モデルの出力→ユーザへの出力
+
         tag, text = extract_tag(response_text)
         return text
 
 
+debug = False
 set_chatbot(PanAI())

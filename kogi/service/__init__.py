@@ -1,5 +1,5 @@
 from .globals import kogi_defined, kogi_get, globals_update
-from .s3logging import kogi_print, print_nop
+from .s3logging import kogi_print, print_nop, debug_print
 from .textra import load_mt, translate
 from .slack import load_slack, slack_send
 from .huggingface import load_model, model_generate

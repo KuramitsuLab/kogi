@@ -4,11 +4,18 @@ import json
 import signal
 from datetime import datetime
 import requests
+from .globals import kogi_get
 
 
 def kogi_print(*args, **kw):
     print('\033[34m[🐶]', *args, **kw)
     print('\033[0m', end='')
+
+
+def debug_print(*args, **kw):
+    if kogi_get('debug', False):
+        print('\033[33m[🐝]', *args, **kw)
+        print('\033[0m', end='')
 
 
 def print_nop(*args, **kw):
