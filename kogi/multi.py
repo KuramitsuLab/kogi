@@ -16,12 +16,18 @@ def extract_tag(text):
 
 
 def render_code(text):
-    r = Render(div='<pre style="background: #fff2d8">{}</pre>')
+    r = Render()
     text = tohtml(text)
+    vars = []
     for kvar in get_kvars(text):
         var = kvar.replace('_', '')
-        text = text.replace(kvar, html_color(var, color='cyan'))
-    r.appendHTML(text)
+        var = html_color(var, color='blue')
+        text = text.replace(kvar, var)
+        vars.append(var)
+    r.appendHTML(text, div='<pre style="background: #fff2d8">{}</pre>')
+    if len(vars) > 0:
+        r.appendHTML(' '.join(vars)+'の部分は、適切な変数、値、式に置き換えてください')
+    r.appendHTML('<button>いいね</button><button>残念</button>')
     return r.get_message('こんな感じかな？')
 
 

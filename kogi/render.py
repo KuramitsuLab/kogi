@@ -73,10 +73,10 @@ class Render(object):
             self.htmls.append(div.format(render['_html']))
             self.terms.append(render['_term'])
 
-    def appendHTML(self, content):
+    def appendHTML(self, content, div='<div>{}</div>'):
         if hasattr(content, '_repr_html_'):
             content = content._repr_html_()
-        self.htmls.append(content)
+        self.htmls.append(div.format(content))
 
     def text(self):
         return ''.join(self.texts)
