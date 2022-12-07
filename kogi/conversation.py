@@ -157,5 +157,5 @@ def catch_and_start_kogi(exc_info=None, code: str = None, context: dict = None, 
     messages = error_message(record)
     if context:
         record.update(context)
-    _DefaultChatbot.update(context)
+    _DefaultChatbot.update(record)
     display_dialog(_DefaultChatbot, start=messages)
