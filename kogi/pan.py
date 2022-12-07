@@ -8,7 +8,7 @@ from kogi.service import *
 from .conversation import ConversationAI, set_chatbot
 
 kogi_set(
-    model_id='myst7725/codepan1117_IN3'
+    model_id='NaoS2/multi-kogi'
 )
 
 
