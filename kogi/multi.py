@@ -30,6 +30,7 @@ def fix_code(args, kw):
         r.println(fixed, color='green')
         return r.get_message('直してみたよ')
     else:
+        debug_print(kw)
         return 'エラーが見つからないよ！'
 
 
@@ -46,7 +47,8 @@ def run_task(commands, args, kw):
         if command in TASK:
             ms.append(TASK[command](args, kw))
     if len(ms) == 0:
-        return 'あわわわ ' + ' '.join(commands)
+        debug_print(commands)
+        return 'あわわわ'
     return ms
 
 
