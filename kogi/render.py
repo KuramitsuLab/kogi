@@ -89,7 +89,7 @@ class Render(object):
     def get_message(self, heading=''):
         m = {}
         if heading != '':
-            m.println(heading, bold=True)
+            self.println(heading, bold=True)
         m['text'] = self.text()
         m['html'] = self.html()
         return m
