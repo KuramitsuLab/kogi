@@ -16,5 +16,16 @@ inputPane.addEventListener('keydown', (e) => {
 inputPane.addEventListener('focusin', (e) => {
     inputPane.style.height = 200;
 });
+var like = (id) => {
+    google.colab.kernel.invokeFunction('notebook.like', [id], {});
+};
+var cp = (id) => {
+    const txt = document.getElementById(`e${id}`).textContent;
+    navigator.clipboard.writeText(txt);
+    google.colab.kernel.invokeFunction('notebook.like', [id], {});
+};
+var say = (text) => {
+    google.colab.kernel.invokeFunction('notebook.say', [text], {});
+};
 // var target = document.getElementById('output');
 // target.scrollIntoView(false);

@@ -17,6 +17,10 @@ def term_color(text, color=None, background=None, bold=False):
     return text
 
 
+def tohtml(text):
+    return text.replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br>')
+
+
 def html_color(text, color=None, background=None, bold=False):
     if color and background:
         text = f'<span style="color: {color}; background: {background};">{text}</span>'
@@ -29,11 +33,30 @@ def html_color(text, color=None, background=None, bold=False):
     return text
 
 
-def tohtml(text):
-    return text.replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br>')
+_PAIRs = []
 
 
 class Render(object):
+    @classmethod
+    def new_pairid(cls, input_text, output_text):
+        eid = len(_PAIRs)
+        _PAIRs.append((input_text, output_text))
+        return eid
+
+    @classmethod
+    def create_button(cls, eid, title='いいね', copy=False):
+        func = 'cp' if copy else 'like'
+        button = f'<button onlick="{func}({eid})">{title}</button>'
+        return button
+
+    @classmethod
+    def create_code(cls, eid, text, title='コピー'):
+        button = Render.create_button(eid, title, copy=True)
+        if '\n' in text or '<br>' in text:
+            return f'<pre id="e{eid}">{text}</pre>'+button
+        else:
+            return f'<code id="e{eid}">{text}</code>'+button
+
     def __init__(self, div='{}'):
         self.div = div
         self.texts = []

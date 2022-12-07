@@ -3,7 +3,7 @@ from .content import JS, CSS, ICON
 from ._google import google_colab
 
 from IPython.display import display, HTML
-from kogi.service import kogi_get
+from kogi.service import kogi_get, debug_print
 
 
 _DIALOG_COLAB_HTML = '''
@@ -107,7 +107,8 @@ def display_dialog(chatbot, start=None, placeholder='質問はこちらに'):
 
     def display_user(message):
         nonlocal chatbot, target
-        message = chatbot.messagefy(message, name='あなた', icon='girl_think-fs8.png')
+        message = chatbot.messagefy(
+            message, name='あなた', icon='girl_think-fs8.png')
         message['target'] = target
         display_talk(_htmlfy_user(message), target)
 
@@ -136,15 +137,24 @@ def display_dialog(chatbot, start=None, placeholder='質問はこちらに'):
                 display_bot('バグで処理に失敗しました。ごめんなさい')
                 traceback.print_exc()
 
-        def likeit(conversation_id, how):
+        def like(conversation_id):
             nonlocal chatbot
             try:
-                chatbot.likeit(conversation_id, how)
+                debug_print(conversation_id)
+            except:
+                display_bot('バグで処理に失敗しました。ごめんなさい')
+                traceback.print_exc()
+
+        def say(conversation_id):
+            nonlocal chatbot
+            try:
+                debug_print(conversation_id)
             except:
                 display_bot('バグで処理に失敗しました。ごめんなさい')
                 traceback.print_exc()
         google_colab.register_callback('notebook.ask', ask)
-        google_colab.register_callback('notebook.likeit', likeit)
+        google_colab.register_callback('notebook.like', like)
+        google_colab.register_callback('notebook.say', say)
     if start:
         display_bot(start)
     return display_bot, display_user

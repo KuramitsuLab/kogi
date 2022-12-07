@@ -15,7 +15,8 @@ def extract_tag(text):
     return '', text
 
 
-def render_code(text):
+def render_code(text, input_text=''):
+    eid = Render.new_pairid(input_text, text)
     r = Render()
     text = tohtml(text)
     vars = []
@@ -24,10 +25,7 @@ def render_code(text):
         var = html_color(var, color='blue')
         text = text.replace(kvar, var)
         vars.append(var)
-    r.appendHTML(text, div='<pre style="background: #fff2d8">{}</pre>')
-    if len(vars) > 0:
-        r.appendHTML(' '.join(vars)+'は、適切な変数、値、式に置き換えてください')
-    r.appendHTML('<button>いいね</button><button>残念</button>')
+    r.appendHTML(Render.create_code(eid, text))
     return r.get_message('こんな感じかな？')
 
 
@@ -96,7 +94,7 @@ class MultitaskAI(ConversationAI):
             commands, args, kw = self.argparse(text)
             return run_task(commands, args, kw)
         if tag.startswith('<コード'):
-            return render_code(text)
+            return render_code(text, input_text=user_input)
         return text
 
 

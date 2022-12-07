@@ -1,5 +1,6 @@
 import requests
 import os
+from .s3logging import debug_print
 
 
 def getpid():
@@ -19,7 +20,7 @@ def load_model(model_id):
         return
     pid = getpid()
     if pid:
-        print(f'kill -15 {pid}')
+        debug_print(f'kill -15 {pid}')
         os.system(f'kill -15 {pid}')
     script = os.path.abspath(__file__).replace('api', 'serv')
     #print(f'python3 {script} {model_id} &')

@@ -17,9 +17,16 @@ html[theme=dark] {
     --code-color: #eee;
 }
 
-pre {
-    background: (--code-background);
-    color: (--code-code);
+pre,
+code {
+    background: var(--code-background);
+    color: var(--code-code);
+}
+
+button {
+    font-size: 10px;
+    background: var(--code-background);
+    color: var(--code-code);
 }
 
 .sb-box {

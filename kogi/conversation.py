@@ -145,7 +145,7 @@ def error_message(record):
             r.extend(stack, div='<pre>{}</pre>')
     else:
         r.extend(record, div='<pre>{}</pre>')
-    r.appendHTML('<button>いいね</button>')
+    r.appendHTML('<button onlick="say(\'@diagnosis\')">どうしたらいいの？</button>')
     return r.get_message()
 
 
