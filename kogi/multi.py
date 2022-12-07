@@ -1,7 +1,7 @@
 from kogi.service import *
 from .conversation import ConversationAI, set_chatbot
-from .transform import model_transform
-from .render import Render
+from .transform import model_transform, get_kvars
+from .render import Render, tohtml, html_color
 
 kogi_set(
     model_id='NaoS2/multi-kogi'
@@ -17,7 +17,11 @@ def extract_tag(text):
 
 def render_code(text):
     r = Render(div='<pre style="background: #fff2d8">{}</pre>')
-    r.println(text)
+    text = tohtml(text)
+    for kvar in get_kvars(text):
+        var = kvar.replace('_', '')
+        text = text.replace(kvar, html_color(var, color='cyan'))
+    r.appendHTML(text)
     return r.get_message('こんな感じかな？')
 
 
