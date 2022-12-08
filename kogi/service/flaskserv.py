@@ -134,6 +134,6 @@ def remove_pid(signum, frame):
 signal.signal(signal.SIGTERM, remove_pid)
 
 if __name__ == '__main__':
-    app.run(debug=False, host='0.0.0.0')
     save_pid()
     load_model(sys.argv[1])
+    app.run(debug=False, host='localhost')
