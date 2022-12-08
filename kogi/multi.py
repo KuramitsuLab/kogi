@@ -45,6 +45,9 @@ class MultitaskAI(ConversationAI):
                 args.append(s)
         return commands, args, kw
 
+    def exec(self, prompt):
+        return run_task(prompt, self.slots)
+
     def response(self, user_input):
         tag, text = model_transform(user_input, split_tag=True)
         if tag.startswith('<status>'):

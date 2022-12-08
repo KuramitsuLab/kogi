@@ -137,18 +137,20 @@ def display_dialog(chatbot, start=None, placeholder='質問はこちらに'):
                 display_bot('バグで処理に失敗しました。ごめんなさい')
                 traceback.print_exc()
 
-        def like(conversation_id):
+        def like(docid, score, domain):
             nonlocal chatbot
             try:
-                debug_print(conversation_id)
+                debug_print(docid, score, domain)
             except:
                 display_bot('バグで処理に失敗しました。ごめんなさい')
                 traceback.print_exc()
 
-        def say(conversation_id):
+        def say(prompt):
             nonlocal chatbot
             try:
-                debug_print(conversation_id)
+                debug_print(prompt)
+                messages = chatbot.exec(prompt)
+                display_bot(messages)
             except:
                 display_bot('バグで処理に失敗しました。ごめんなさい')
                 traceback.print_exc()
