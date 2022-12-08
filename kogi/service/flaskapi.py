@@ -23,7 +23,6 @@ def load_model(model_id):
         debug_print(f'kill -15 {pid}')
         os.system(f'kill -15 {pid}')
     script = os.path.abspath(__file__).replace('api', 'serv')
-    #print(f'python3 {script} {model_id} &')
     os.system(f'python3 {script} {model_id} &')
 
 

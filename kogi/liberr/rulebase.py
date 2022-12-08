@@ -170,6 +170,20 @@ def replace_eparams(msg, eparams):
     return t
 
 
+def _dequote(s):
+    if len(s) > 2 and s[0] in '"`\'' and s[-1] in '"`\'':
+        return s[1:-1]
+    return s
+
+
+def expand_eparams(record):
+    if '_eparams' not in record:
+        return
+    for X, val in zip(string.ascii_uppercase, record['_eparams']):
+        record[f'{X}_'] = _dequote(val)
+        record[f'{X}'] = val
+
+
 def rewrite_emsg(record, translate=None):
     emsg = record['emsg']
     etype, epat, eparams = extract_params(emsg, maxlen=None)

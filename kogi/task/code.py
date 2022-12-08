@@ -10,7 +10,7 @@ def fix_code(args, kw):
         code = Doc.code()
         code.append(Doc.color(f'{eline}\n', color='red'))
         if tag != '<コード修正>' or eline == fixed:
-            return code.println('ごめんね。直せないよ！')
+            code.println('ごめんね。なんかうまく直せないよ！')
         else:
             code.append(Doc.color(f'{fixed}\n', background='#d0e2be'))
         doc_id = code.reg(eline, fixed)
@@ -18,7 +18,7 @@ def fix_code(args, kw):
         return code.get_message('コギーがコードを直してみたら..')
     else:
         debug_print(kw)
-        return 'エラーが見つからないねえ！よかった！'
+        return 'エラーが見つからないよ！'
 
 
 define_task('@fix_code @fix @help', fix_code)
