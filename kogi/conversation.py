@@ -37,25 +37,8 @@ class ConversationAI(object):
         else:
             self.slots = {}
 
-    def argparse(self, text, commands=None):
-        ss = text.split()
-        commands = commands or []
-        kw = dict(self.slots)
-        args = []
-        for s in ss:
-            if s.startswith('@'):
-                commands.append(s)
-            elif '=' in s:
-                kv = s.split('=')
-                if len(kv) == 2:
-                    kw[kv[0]] = kv[1]
-            elif '_' in s:
-                kv = s.split('_')
-                if len(kv) == 2:
-                    kw[kv[0]] = kv[1]
-            else:
-                args.append(s)
-        return commands, args, kw
+    def exec(self, prompt):
+        return ''
 
     def ask(self, input_text):
         output_text = self.response(input_text)

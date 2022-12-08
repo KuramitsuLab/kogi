@@ -16,17 +16,19 @@ inputPane.addEventListener('keydown', (e) => {
 inputPane.addEventListener('focusin', (e) => {
     inputPane.style.height = 200;
 });
-var like = (id) => {
-    google.colab.kernel.invokeFunction('notebook.like', [id], {});
+var like = (id, score, domain) => {
+    console.log(id, score, domain)
+    google.colab.kernel.invokeFunction('notebook.like', [id, score, domain], {});
 };
 var cp = (id) => {
-    const txt = document.getElementById(`e${id}`).textContent;
-    console.log(txt)
-    navigator.clipboard.writeText(txt);
-    google.colab.kernel.invokeFunction('notebook.like', [id], {});
+    const text = document.getElementById(`e${id}`).textContent;
+    console.log(text);
+    navigator.clipboard.writeText(text);
+    //google.colab.kernel.invokeFunction('notebook.like', [id], {});
 };
-var say = (text) => {
-    google.colab.kernel.invokeFunction('notebook.say', [text], {});
+var say = (prompt, bid) => {
+    const text = document.getElementById(`b${bid}`).textContent;
+    google.colab.kernel.invokeFunction('notebook.say', [prompt, text], {});
 };
 // var target = document.getElementById('output');
 // target.scrollIntoView(false);

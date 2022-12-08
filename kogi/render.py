@@ -32,6 +32,7 @@ def _html_div_color(color=None, background=None, bold=False):
 
 
 _PAIRs = []
+_BUTTON_ID = 1000
 
 
 def _text(x):
@@ -130,8 +131,10 @@ class Doc(object):
         return eid
 
     def add_button(self, cmd, message):
-        kind = f"'{cmd}'"
-        button = f'<button onclick="say({kind})">{message}</button>'
+        global _BUTTON_ID
+        _BUTTON_ID += 1
+        cmd = f"'{cmd}'"
+        button = f'<button id="b{_BUTTON_ID}" onclick="say({cmd},{_BUTTON_ID})">{{}}</button>'
         self.htmls.append(Doc(message, html_div=button))
 
     def get_message(self, headings=''):
@@ -141,19 +144,19 @@ class Doc(object):
         m['html'] = self.html()
         return m
 
-    @ classmethod
+    @classmethod
     def new_docid(cls, input_text, output_text):
         eid = len(_PAIRs)
         _PAIRs.append((input_text, output_text))
         return eid
 
-    @ classmethod
+    @classmethod
     def color(cls, text, color=None, background=None, bold=False):
         return Doc(text,
                    html_div=_html_div_color(color, background, bold),
                    term_div=_term_div_color(color, background, bold))
 
-    @ classmethod
+    @classmethod
     def code(cls, text=''):
         return Doc(text, html_div='<pre>{}</pre>')
 
