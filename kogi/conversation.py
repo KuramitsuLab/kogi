@@ -83,8 +83,8 @@ class ConversationAI(object):
         return self.messagefy(self.response(input_text))
 
     def messagefy(self, message, name='コギー', icon='kogi-fs8.png'):
-        if isinstance(message, str):
-            message = dict(text=message)
+        if not isinstance(message, dict):
+            message = dict(text=str(message))
         if 'name' not in message:
             message['name'] = name
         if 'icon' not in message:
