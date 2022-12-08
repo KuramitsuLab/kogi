@@ -21,6 +21,7 @@ var like = (id) => {
 };
 var cp = (id) => {
     const txt = document.getElementById(`e${id}`).textContent;
+    console.log(txt)
     navigator.clipboard.writeText(txt);
     google.colab.kernel.invokeFunction('notebook.like', [id], {});
 };

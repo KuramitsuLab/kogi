@@ -1,7 +1,7 @@
 import sys
 import re
 import linecache
-from kogi.render import Render
+from kogi.render import Doc
 
 from .extract_vars import extract_vars
 from .rulebase import rewrite_emsg
@@ -42,7 +42,7 @@ def getline(filename, lines, lineno):
 #             ss.append(f'{bold(key)}={value}')
 #     return ' '.join(ss)
 
-def format_stack(r, filename, funcname, local_vars, exprs=None, n_args=0):
+def format_stack(doc, filename, funcname, local_vars, exprs=None, n_args=0):
     if filename.startswith('<ipython-input-'):
         t = funcname.split('-')
         if len(t) > 2:
@@ -52,8 +52,8 @@ def format_stack(r, filename, funcname, local_vars, exprs=None, n_args=0):
         if funcname.startswith('<'):
             funcname = ''
     if funcname != '':
-        r.print(funcname, color='blue', bold=True)
-        r.println(f' "{filename}"', color='glay')
+        doc.print(funcname, color='blue', bold=True)
+        doc.println(f' "{filename}"', color='glay')
     # arguments = repr_vars(local_vars, 0, n_args)
     # if len(arguments) > 2:
     #     arguments = f'({arguments})'
@@ -69,36 +69,36 @@ def format_stack(r, filename, funcname, local_vars, exprs=None, n_args=0):
     #     print(locals)
 
 
-def format_arrow(r, lineno, here=False):
+def format_arrow(doc, lineno, here=False):
     s = str(lineno)
     if here:
         arrow = '-' * max(5-len(s), 0) + '> '
     else:
         arrow = ' ' * max(5-len(s), 0) + '  '
-    r.print(arrow, color='red')
-    r.print(f'{s} ', color='green')
+    doc.print(arrow, color='red')
+    doc.print(f'{s} ', color='green')
 
 
-def format_linecode(r, filename, lines, lineno):
+def format_linecode(doc, filename, lines, lineno):
     if lineno-2 > 0:
-        format_arrow(r, lineno-2)
-        r.println(getline(filename, lines, lineno-2))
+        format_arrow(doc, lineno-2)
+        doc.println(getline(filename, lines, lineno-2))
     if lineno-1 > 0:
-        format_arrow(r, lineno-1)
-        r.println(getline(filename, lines, lineno-1))
-    format_arrow(r, lineno, here=True)
-    r.println(getline(filename, lines, lineno))
-    # render_arrow(r, lineno+1)
-    # r.println(getline(filename, lines, lineno+1))
-    # render_arrow(r, lineno+2)
-    # r.println(getline(filename, lines, lineno-2))
+        format_arrow(doc, lineno-1)
+        doc.println(getline(filename, lines, lineno-1))
+    format_arrow(doc, lineno, here=True)
+    doc.println(getline(filename, lines, lineno))
+    # render_arrow(doc, lineno+1)
+    # doc.println(getline(filename, lines, lineno+1))
+    # render_arrow(doc, lineno+2)
+    # doc.println(getline(filename, lines, lineno-2))
 
 
-def format_offset(r, lineno, offset):
+def format_offset(doc, lineno, offset):
     offset = max(0, offset-1)
     format_arrow(r, lineno)
-    r.print(' ' * offset)
-    r.println('▲', color='red', bold=True)
+    doc.print(' ' * offset)
+    doc.println('▲', color='red', bold=True)
 
 
 def syntax_exc(code, caught_ex, record):
@@ -107,11 +107,11 @@ def syntax_exc(code, caught_ex, record):
     record['lineno'] = lineno = caught_ex.lineno
     record['eline'] = text = caught_ex.text
     record['offset'] = offset = caught_ex.offset
-    r = Render()
-    format_linecode(r, filename, lines, lineno)
-    format_offset(r, lineno, offset)
+    doc = Doc(html_div='<pre>{}</pre>')
+    format_linecode(doc, filename, lines, lineno)
+    format_offset(doc, lineno, offset)
     # print(dir(caught_ex))
-    r.update(record)
+    record['_doc'] = doc
     return record
 
 
@@ -129,31 +129,32 @@ _VARPAT = re.compile(r'([A-Za-z_][A-Za-z_]*)')
 
 
 def find_var(parent, eline, locals={}):
-    r = Render()
+    doc = Doc(html_div='<pre>{}</pre>')
     dup = set()
     found = re.findall(_VARPAT, eline)
     if found:
         for name in found:
             if name in locals and name not in dup:
                 dup.add(name)
-                format_value(r, locals[name], name)
+                format_value(doc, locals[name], name)
     if len(dup) > 0:
-        parent.extend(r, div='<details><summary>変数を確認</summary>{}</details>')
+        doc = Doc(doc, html_div='<details><summary>変数の値を確認する</summary>{}</details>')
+        parent.append(doc)
 
 
-def format_value(r, value, name=None):
+def format_value(doc, value, name=None):
     if name:
-        r.print(f'   {name}', bold=True)
-        r.print(f' = ')
-    r.print(f'{type(value).__name__}型 ', color='green')
+        doc.print(f'   {name}', bold=True)
+        doc.print(f' = ')
+    doc.print(f'{type(value).__name__}型 ', color='green')
     if hasattr(value, 'shape'):
-        r.print(f'shape:{repr(value.shape)} ', color='green')
+        doc.print(f'shape:{repr(value.shape)} ', color='green')
     elif hasattr(value, '__len__'):
-        r.print(f'len:{len(value)} ', color='green')
+        doc.print(f'len:{len(value)} ', color='green')
     dump = repr(value)
     if len(dump) > 20:
         dump = dump + '...'
-    r.println(dump)
+    doc.println(dump)
 
 
 def runtime_exc(code, tb, record):
@@ -183,11 +184,13 @@ def runtime_exc(code, tb, record):
             lineno=lineno, line=line,
             line_in_code=line in code,
         )
-        r = Render()
-        format_stack(r, filename, funcname, local_vars, exprs, n_args)
-        format_linecode(r, filename, lines, lineno)
-        find_var(r, line, local_vars)
-        r.update(stack)
+        doc = Doc()
+        format_stack(doc, filename, funcname, local_vars, exprs, n_args)
+        pre = Doc(html_div='<pre>{}</pre>')
+        format_linecode(pre, filename, lines, lineno)
+        doc.append(pre)
+        find_var(doc, line, local_vars)
+        stack['_doc'] = doc
         stacks.append(stack)
         if line in code:
             eline = line

@@ -17,7 +17,7 @@ else:
         from .ui.dialog_colab import display_dialog
 
 from .liberr import kogi_exc
-from .render import Render
+from .render import Doc
 
 
 class ConversationAI(object):
@@ -130,23 +130,24 @@ def call_and_start_kogi(actions, code: str = None, context: dict = None):
 
 
 def error_message(record):
-    r = Render()
+    doc = Doc()
     if 'emsg_rewritten' in record:
-        r.println(record['emsg_rewritten'], bold=True)
-        r.println(record['emsg'], color='#888888')
+        doc.println(record['emsg_rewritten'], bold=True)
+        doc.println(record['emsg'], color='#888888')
     else:
-        r.println(record['emsg'])
-        r.println(record['_epat'])
+        doc.println(record['emsg'])
+        doc.println(record['_epat'], color='#888888')
     # print(record)
     if '_stacks' in record:
         for stack in record['_stacks']:
             if '-packages' in stack['filename']:
                 continue
-            r.extend(stack, div='<pre>{}</pre>')
+            doc.append(stack['_doc'])
     else:
-        r.extend(record, div='<pre>{}</pre>')
-    r.appendHTML('<button onclick="say(\'@diagnosis\')">どうしたらいいの？</button>')
-    return r.get_message()
+        doc.append(record['_doc'])
+    doc.add_button('@diagnosis', 'どうしたらいいの？')
+    doc.add_button('@fix_code', 'わんちゃん、直して')
+    return doc.get_message()
 
 
 def catch_and_start_kogi(exc_info=None, code: str = None, context: dict = None, exception=None, enable_dialog=True):

@@ -2,17 +2,11 @@ from kogi.service import *
 from .conversation import ConversationAI, set_chatbot
 from .transform import model_transform, get_kvars
 from .render import Render, tohtml, html_color
+from .task.loading import run_task
 
 kogi_set(
     model_id='NaoS2/multi-kogi'
 )
-
-
-def extract_tag(text):
-    if text.startswith('<'):
-        tag, end_tag, text = text.partition('>')
-        return tag+end_tag, text
-    return '', text
 
 
 def render_code(text, input_text=''):
@@ -27,40 +21,6 @@ def render_code(text, input_text=''):
         vars.append(var)
     r.appendHTML(Render.create_code(eid, text))
     return r.get_message('こんな感じかな？')
-
-
-def fix_code(args, kw):
-    if 'eline' in kw:
-        eline = kw['eline']
-        fixed = model_generate(f'<コード修正>{eline}')
-        tag, fixed = extract_tag(fixed)
-        if eline == fixed:
-            return '直せないよ。ごめんね'
-        r = Render(div='<pre style="background: #fff2b8">{}</pre>')
-        r.println(eline, color='red')
-        r.println(fixed, color='green')
-        return r.get_message('直してみたよ')
-    else:
-        debug_print(kw)
-        return 'エラーが見つからないよ！'
-
-
-TASK = {
-    '@help': fix_code,
-    '@fix_code': fix_code,
-}
-
-
-def run_task(commands, args, kw):
-    global TASK
-    ms = []
-    for command in commands:
-        if command in TASK:
-            ms.append(TASK[command](args, kw))
-    if len(ms) == 0:
-        debug_print(commands)
-        return 'あわわわ'
-    return ms
 
 
 class MultitaskAI(ConversationAI):
@@ -86,15 +46,13 @@ class MultitaskAI(ConversationAI):
         return commands, args, kw
 
     def response(self, user_input):
-        response_text = model_transform(user_input)
-        tag, text = extract_tag(response_text)
+        tag, text = model_transform(user_input, split_tag=True)
         if tag.startswith('<status>'):
             return 'AIモデルのロード中. しばらく待ってね'
-        if tag.startswith('<コマンド'):
-            commands, args, kw = self.argparse(text)
-            return run_task(commands, args, kw)
         if tag.startswith('<コード'):
             return render_code(text, input_text=user_input)
+        if tag.startswith('<コマンド'):
+            return run_task(text, self.slots)
         return text
 
 

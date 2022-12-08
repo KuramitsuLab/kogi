@@ -27,7 +27,14 @@ def load_model(model_id):
     os.system(f'python3 {script} {model_id} &')
 
 
-def model_generate(text, max_length=128, beam=1):
+def extract_tag(text):
+    if text.startswith('<'):
+        tag, end_tag, text = text.partition('>')
+        return tag+end_tag, text
+    return '', text
+
+
+def model_generate(text, max_length=128, beam=1, split_tag=False):
     payload = {"inputs": text, "max_length": max_length}
     #headers = {"Authorization": f"Bearer {model_key}"}
     #response = requests.post(URL, headers=headers, json=payload)
@@ -39,6 +46,11 @@ def model_generate(text, max_length=128, beam=1):
         if isinstance(output, (list, tuple)):
             output = output[0]
         output = output.get('generated_text', '')
-        return output.replace('<tab>', '    ').replace('<nl>', '\n')
+        output = output.replace('<tab>', '    ').replace('<nl>', '\n')
+        if split_tag:
+            return extract_tag(output)
+        return output
     except Exception as e:
+        if split_tag:
+            return '<status>', f'{e}'
         return f'<status>{e}'
