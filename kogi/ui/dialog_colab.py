@@ -145,10 +145,11 @@ def display_dialog(chatbot, start=None, placeholder='質問はこちらに'):
                 display_bot('バグで処理に失敗しました。ごめんなさい')
                 traceback.print_exc()
 
-        def say(prompt):
+        def say(prompt, text):
             nonlocal chatbot
             try:
-                debug_print(prompt)
+                debug_print(prompt, text)
+                display_user(text)
                 messages = chatbot.exec(prompt)
                 display_bot(messages)
             except:
