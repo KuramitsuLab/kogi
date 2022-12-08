@@ -130,6 +130,15 @@ class Doc(object):
         self.htmls.append(Doc('残念', html_div=button))
         return eid
 
+    def likeit(self, kind, input_text, output_text):
+        kind = f"'{kind}'"
+        eid = self.reg(input_text, output_text)
+        button = f'<button onclick="like({eid},1,{kind})">{{}}</button>'
+        self.htmls.append(Doc('いいね', html_div=button))
+        button = f'<button onclick="like({eid},0,{kind})">{{}}</button>'
+        self.htmls.append(Doc('残念', html_div=button))
+        return eid
+
     def add_button(self, cmd, message):
         global _BUTTON_ID
         _BUTTON_ID += 1

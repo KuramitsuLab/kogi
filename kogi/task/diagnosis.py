@@ -15,7 +15,7 @@ _OPTIONAL = re.compile(r'(\[[^\]]+\])')
 
 
 def _extract_svars(text, pat):
-    return text.findall(pat, text)
+    return re.findall(pat, text)
 
 
 def _replace_svar(text, svar, kw):
@@ -29,6 +29,7 @@ def _replace_svar(text, svar, kw):
 
 def error_format(text, kw):
     expand_eparams(kw)
+    debug_print(kw)
     for svar in _extract_svars(text, _SPECIAL):
         text = _replace_svar(text, svar, kw)
     for option in _extract_svars(text, _OPTIONAL):
@@ -39,31 +40,32 @@ def error_format(text, kw):
     return text
 
 
-def error_message(args, kw):
-    doc = Doc()
+def error_message(doc, args, kw):
     for w in args:
         if w in _DIC:
             doc.println(error_format(_DIC[w], kw))
         else:
             doc.println(w)
-    return doc.get_message()
 
 
 def error_classfy(args, kw):
     if 'emsg' in kw and 'eline' in kw:
         emsg = kw['emsg']
         eline = kw['eline']
-        tag, fixed = model_generate(
-            f'<エラー分類>{eline}<sep>{emsg}', split_tag=True)
+        input_text = f'<エラー分類>{eline}<sep>{emsg}'
+        tag, fixed = model_generate(input_text, split_tag=True)
         if tag == '<status>':
             return status_message(fixed)
         if tag != '<エラー分類>':
             return 'うまく分析できないよ。ごめんね。'
         args, kw, _ = model_parse(fixed, kw)
-        return error_message(args, kw)
+        doc = Doc()
+        error_message(doc, args, kw)
+        doc.likeit('@error', input_text, fixed)
+        return doc.get_message()
     else:
         debug_print(args, kw)
         return 'エラーが見つからないよ！'
 
 
-define_task('@root_cause_analysis @diagnosis', error_classfy)
+define_task('@root_cause_analysis @diagnosis @error', error_classfy)
