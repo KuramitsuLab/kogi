@@ -1,25 +1,23 @@
 from .common import debug_print
 
 
-def model_parse(text, kw):
-    commands = []
+def model_parse(text, kw, commands=None):
     kw = dict(kw)
     args = []
     ss = text.split()
     for s in ss:
         if s.startswith('@'):
-            commands.append(s)
+            if isinstance(commands, list):
+                commands.append(s)
+            else:
+                args = []
         elif '=' in s:
             kv = s.split('=')
             if len(kv) == 2:
                 kw[kv[0]] = kv[1]
-        elif '_' in s:
-            kv = s.split('_')
-            if len(kv) == 2:
-                kw[kv[0]] = kv[1]
         else:
             args.append(s)
-    return args, kw, commands
+    return args, kw
 
 
 _TASK = {
@@ -37,7 +35,8 @@ def define_task(key, func):
 
 def run_task(text, kw):
     global _TASK
-    args, kw, cmds = model_parse(text, kw)
+    cmds = []
+    args, kw = model_parse(text, kw, cmds)
     ms = []
     for cmd in cmds:
         if cmd in _TASK:

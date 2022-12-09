@@ -8,7 +8,9 @@ _DIC = {
     '構文エラー': '[<B>行目で]構文が間違っています。',
     '構文': '[<B>行目で]構文が間違っています。',
     '未定義変数': '変数[<A_>]はまだ値が代入されていません。[<A_> = ... のように先に代入してみましょう。]',
+    'インポートし忘れ': 'インポートをし忘れています。@check_import',
 }
+
 
 _SPECIAL = re.compile(r'\<([^\>]+)\>')
 _OPTIONAL = re.compile(r'(\[[^\]]+\])')
@@ -58,7 +60,7 @@ def error_classfy(args, kw):
             return status_message(fixed)
         if tag != '<エラー分類>':
             return 'うまく分析できないよ。ごめんね。'
-        args, kw, _ = model_parse(fixed, kw)
+        args, kw = model_parse(fixed, kw)
         doc = Doc()
         error_message(doc, args, kw)
         doc.likeit('@error', input_text, fixed)
@@ -69,3 +71,27 @@ def error_classfy(args, kw):
 
 
 define_task('@root_cause_analysis @diagnosis @error', error_classfy)
+
+IMPORT = {
+    'np': 'import numpy as np',
+    'pd': 'import pandas as pd',
+    'plt': 'import matplotlib.pyplot as plt',
+}
+
+
+def check_import(args, kw):
+    expand_eparams(kw)
+    if 'A_' not in kw:
+        return ''
+    x = kw['A_']
+    if x in IMPORT:
+        doc = Doc()
+        doc.println('先に')
+        doc.append(Doc.code(IMPORT[x]))
+        doc.println('を実行するようにしよう')
+        return doc.get_message()
+    else:
+        return f'「{x}をインポートするには？」'
+
+
+define_task('@check_import', check_import)
