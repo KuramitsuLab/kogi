@@ -96,7 +96,7 @@ def format_linecode(doc, filename, lines, lineno):
 
 def format_offset(doc, lineno, offset):
     offset = max(0, offset-1)
-    format_arrow(r, lineno)
+    format_arrow(doc, lineno)
     doc.print(' ' * offset)
     doc.println('▲', color='red', bold=True)
 
