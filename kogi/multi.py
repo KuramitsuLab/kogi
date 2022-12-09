@@ -1,7 +1,7 @@
 from kogi.service import *
 from .conversation import ConversationAI, set_chatbot
 from .transform import model_transform, get_kvars
-from .render import Render, tohtml, html_color
+from .render import Doc, tohtml, html_color
 from .task.loading import run_task
 
 kogi_set(
@@ -10,17 +10,19 @@ kogi_set(
 
 
 def render_code(text, input_text=''):
-    eid = Render.new_pairid(input_text, text)
-    r = Render()
-    text = tohtml(text)
+    doc = Doc()
+    doc.println('えいやと')
+    htext = tohtml(text)
     vars = []
-    for kvar in get_kvars(text):
+    for kvar in get_kvars(htext):
         var = kvar.replace('_', '')
         var = html_color(var, color='blue')
-        text = text.replace(kvar, var)
+        htext = htext.replace(kvar, var)
         vars.append(var)
-    r.appendHTML(Render.create_code(eid, text))
-    return r.get_message('こんな感じかな？')
+    doc.append(Doc.code(htext))
+    doc.add_button('@xcopy', 'コピー')
+    doc.likeit("@codepan", input_text, text)
+    return doc.get_message()
 
 
 class MultitaskAI(ConversationAI):

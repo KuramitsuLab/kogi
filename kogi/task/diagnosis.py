@@ -94,3 +94,10 @@ def check_import(args, kw):
 
 
 define_task('@check_import', check_import)
+
+
+def xcopy(args, kw):
+    return 'コピペは勉強にならないよ！'
+
+
+define_task('@xcopy', xcopy)
