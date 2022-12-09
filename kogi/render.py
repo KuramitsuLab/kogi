@@ -48,6 +48,8 @@ def _html(x):
 
 
 def _tohtml(text):
+    if '</' in text or '<br>' in text:
+        return text
     return text.replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br>')
 
 
