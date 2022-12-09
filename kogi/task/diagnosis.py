@@ -101,3 +101,10 @@ def xcopy(args, kw):
 
 
 define_task('@xcopy', xcopy)
+
+
+def xcall(args, kw):
+    return '先生は忙しいから、TAさんに質問しましょう'
+
+
+define_task('@xcall', xcall)

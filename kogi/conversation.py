@@ -129,7 +129,8 @@ def error_message(record):
     else:
         doc.append(record['_doc'])
     doc.add_button('@diagnosis', 'どうしたらいいの？')
-    doc.add_button('@fix_code', 'わんちゃん、直して')
+    doc.add_button('@fix_code', 'ワンチャン直してみて')
+    doc.add_button('@xcall', '先生を呼んで')
     return doc.get_message()
 
 
