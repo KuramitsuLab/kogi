@@ -1,7 +1,7 @@
-import traceback
 from kogi.service import kogi_print
 from .drill import kogi_judge, judge_cpc
 from .atcoder import download_atcoder_problem
+from kogi.hook import kogi_register_hook
 
 
 def atcoder_detector(directive, raw_cell):
@@ -20,3 +20,6 @@ def atcoder_judge(ipy, raw_cell, directive, catch_and_start_kogi):
     else:
         kogi_print('問題が見つかりません。')
     return None
+
+
+kogi_register_hook('atcoder', atcoder_judge, atcoder_detector)
