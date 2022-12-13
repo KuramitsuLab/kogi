@@ -1,7 +1,7 @@
 import uuid
-import traceback
-import json
-import signal
+# import traceback
+# import json
+# import signal
 from datetime import datetime
 import requests
 from .globals import kogi_get

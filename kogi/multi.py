@@ -22,7 +22,7 @@ def render_code(text, input_text=''):
     doc.append(Doc.code(htext))
     doc.add_button('@xcopy', 'コピー')
     doc.likeit("@codepan", input_text, text)
-    return doc.get_message()
+    return doc
 
 
 class MultitaskAI(ConversationAI):
@@ -53,7 +53,7 @@ class MultitaskAI(ConversationAI):
     def response(self, user_input):
         tag, text = model_transform(user_input, split_tag=True)
         if tag.startswith('<status>'):
-            return 'AIモデルのロード中. しばらく待ってね'
+            return '@robot:AIモデルのロード中. しばらく待ってね'
         if tag.startswith('<コード'):
             return render_code(text, input_text=user_input)
         if tag.startswith('<コマンド'):

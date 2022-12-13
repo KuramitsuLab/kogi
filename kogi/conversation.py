@@ -17,7 +17,18 @@ else:
         from .ui.dialog_colab import display_dialog
 
 from .liberr import kogi_exc
-from .render import Doc
+from .render import Doc, encode_md
+
+_ICON = {
+    '@robot': ('システム', 'robot-fs8.png'),
+    '@ta': ('TA', 'ta-fs8.png'),
+    '@kogi': ('コギー', 'kogi-fs8.png'),
+    '@you': ('あなた', 'girl-fs8.png'),
+}
+
+
+def get_icon(tag):
+    return _ICON.get(tag, _ICON['@kogi'])
 
 
 class ConversationAI(object):
@@ -72,25 +83,27 @@ class ConversationAI(object):
     def response_message(self, input_text):
         ms = self.response(input_text)
         if isinstance(ms, list) or isinstance(ms, tuple):
-            if len(ms) == 3:
-                return [
-                    self.messagefy(ms[0], name='コギー', icon='kogi-fs8.png'),
-                    self.messagefy(ms[1], name='ぱんち', icon='pan-fs8.png'),
-                    self.messagefy(ms[2], name='OpenAI',
-                                   icon='openai-fs8.png'),
-                ]
             return [self.messagefy(m) for m in ms]
         return self.messagefy(self.response(input_text))
 
-    def messagefy(self, message, name='コギー', icon='kogi-fs8.png'):
-        if not isinstance(message, dict):
+    def messagefy(self, message, tag=None, name='コギー', icon='kogi-fs8.png'):
+        if isinstance(message, str):
+            if message.startswith('@'):
+                tag, _, text = message.partition(':')
+                message = dict(text=text)
+            else:
+                message = dict(text=message)
+        elif isinstance(message, Doc):
+            message, tag = message.get_message2(tag)
+        elif not isinstance(message, dict):
             message = dict(text=str(message))
+        name, icon = get_icon(tag)
         if 'name' not in message:
             message['name'] = name
         if 'icon' not in message:
             message['icon'] = icon
         if 'html' not in message:
-            message['html'] = message['text']
+            message['html'] = encode_md(message['text'])
         return message
 
 
@@ -129,9 +142,9 @@ def error_message(record):
     else:
         doc.append(record['_doc'])
     doc.add_button('@diagnosis', 'どうしたらいいの？')
-    doc.add_button('@fix_code', 'ワンチャン直してみて')
-    doc.add_button('@xcall', '先生を呼んで')
-    return doc.get_message()
+    doc.add_button('@fix_code', '直してみて')
+    #doc.add_button('@xcall', '先生を呼んで')
+    return doc
 
 
 def catch_and_start_kogi(exc_info=None, code: str = None, context: dict = None, exception=None, enable_dialog=True):

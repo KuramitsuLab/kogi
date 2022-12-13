@@ -1,3 +1,21 @@
+import re
+
+# mini md
+
+_CODE = re.compile(r'(`[^`]+`)')
+_BOLD = re.compile(r'(__[^_]+__)')
+
+
+def encode_md(s):
+    s = s.replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br>')
+    for t in re.findall(_CODE, s):
+        t2 = f'<code>{t[1:-1]}</code>'
+        s = s.replace(t, t2)
+    for t in re.findall(_BOLD, s):
+        t2 = f'<b>{t[2:-2]}</b>'
+        s = s.replace(t, t2)
+    return s
+
 
 TERM = {
     'glay': '\033[07m{}\033[0m',
@@ -148,12 +166,12 @@ class Doc(object):
         button = f'<button id="b{_BUTTON_ID}" onclick="say({cmd},{_BUTTON_ID})">{{}}</button>'
         self.htmls.append(Doc(message, html_div=button))
 
-    def get_message(self, headings=''):
+    def get_message2(self, tag):
         m = {}
         m['text'] = self.text()
         m['term'] = self.term()
         m['html'] = self.html()
-        return m
+        return m, tag
 
     @classmethod
     def new_docid(cls, input_text, output_text):

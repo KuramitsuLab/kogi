@@ -107,8 +107,7 @@ def display_dialog(chatbot, start=None, placeholder='質問はこちらに'):
 
     def display_user(message):
         nonlocal chatbot, target
-        message = chatbot.messagefy(
-            message, name='あなた', icon='girl_think-fs8.png')
+        message = chatbot.messagefy(message, tag='@you')
         message['target'] = target
         display_talk(_htmlfy_user(message), target)
 
@@ -134,7 +133,7 @@ def display_dialog(chatbot, start=None, placeholder='質問はこちらに'):
                 messages = chatbot.ask_message(user_text)
                 display_bot(messages)
             except:
-                display_bot('バグで処理に失敗しました。ごめんなさい')
+                display_bot('@robot:バグで処理に失敗しました。ごめんなさい')
                 traceback.print_exc()
 
         def like(docid, score, domain):
@@ -142,7 +141,7 @@ def display_dialog(chatbot, start=None, placeholder='質問はこちらに'):
             try:
                 debug_print(docid, score, domain)
             except:
-                display_bot('バグで処理に失敗しました。ごめんなさい')
+                display_bot('@robot:バグで処理に失敗しました。ごめんなさい')
                 traceback.print_exc()
 
         def say(prompt, text):

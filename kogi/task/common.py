@@ -3,4 +3,4 @@ from kogi.render import Doc
 
 
 def status_message(status):
-    return '言語モデルをロード中！ 待たせてごめんね！'
+    return '@robot:言語モデルをロード中！ 待たせてごめんね！'

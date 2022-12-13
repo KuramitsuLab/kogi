@@ -13,9 +13,8 @@ def fix_code(args, kw):
             code.println('ごめんね。なんかうまく直せないよ！')
         else:
             code.append(Doc.color(f'{fixed}\n', background='#d0e2be'))
-        doc_id = code.reg(eline, fixed)
-        code.add_likeit(doc_id, '@fix_code')
-        return code.get_message('コギーがコードを直してみたら..')
+            code.likeit('@fix_code', eline, fixed)
+        return code
     else:
         debug_print(kw)
         return 'エラーが見つからないよ！'

@@ -33,6 +33,15 @@ def define_task(key, func):
         _TASK[key] = func
 
 
+def run_command(cmd, args, kw):
+    global _TASK
+    if cmd in _TASK:
+        return _TASK[cmd](args, kw)
+    else:
+        debug_print('undefined task', cmd)
+    return None
+
+
 def run_task(text, kw):
     global _TASK
     cmds = []
