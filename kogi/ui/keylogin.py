@@ -7,7 +7,6 @@ LOGIN_HTML = """\
 <style>
 /* Bordered form */
 form {
-  width: 60%;
   border: 3px solid #f1f1f1;
 }
 
@@ -44,34 +43,26 @@ button:hover {
   opacity: 0.8;
 }
 
-/* Center the avatar image inside this container */
-.imgcontainer {
-  text-align: center;
-  margin: 12px 0 8px 0;
-}
-
 /* Add padding to containers */
 .container {
-  padding: 8px;
+  padding: 0px;
 }
 
 /* The "Forgot password" text */
 span.psw {
   float: right;
-  padding-top: 16px;
+  padding-top: 8px;
 }
 
 </style>
 <form id="base">
-  <h4>こんにちは！ まず、あなたのことを教えてね</h4>
+  こんにちは！ まず、あなたのことを教えてね
   <div class="container">
     <label for="uname"><b>お名前</b></label>
     <input type="text" placeholder="ニックネームをどうぞ" id="uname" name="uname" required>
-
     <label for="psw"><code id="code">print("A", "B", "C")</code></label>
     <input type="text" placeholder="上の1文をそのまま入力してみてください" id="ucode" name="ucode" required>
   </div>
-
   <div class="container" style="background-color:#f1f1f1">
     <button type="button" id="ulogin">利用規約に同意する</button>
     <span class="psw"> <a href="#">利用規約とは</a></span>
@@ -165,4 +156,4 @@ def ulogin(uname, code, ucode, ukeys):
 def login(login_func=ulogin):
     if google_colab:
         google_colab.register_callback('notebook.login', login_func)
-    kogi_print(LOGIN_HTML, html=True)
+    kogi_print(LOGIN_HTML, html=True, height=280)
