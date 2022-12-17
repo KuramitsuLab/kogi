@@ -119,8 +119,8 @@ span.psw {
 
 def check_level(ukeys):
     keys = ukeys.split()
-    times = [int(t) for t in keys[1::2]]
-    keys = keys[0::2]
+    times = [int(t) for t in keys[0::2]]
+    keys = keys[1::2]
     average_time = (sum(times)-max(times)) / (len(times)-1)
     if average_time < 200:
         return average_time, 5
