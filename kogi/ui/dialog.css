@@ -1,11 +1,11 @@
 /* https: //note.com/rocky_days_/n/n5ce4576abca5 */
 html {
-    /* 勿忘草（わすれなぐさ） */
-    --box-background: #9CC5E6;
-    --talk-background: #eee;
+    --box-background: #F0F8FF;
+    /*勿忘草（わすれなぐさ） #9CC5E6;*/
+    --talk-background: #FAF0E6;
     --talk-color: #333;
     /* 桜色 */
-    --code-background: #ffeeed;
+    --code-background: #DCDCDC;
     --code-color: #111;
 }
 

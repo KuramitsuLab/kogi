@@ -2,9 +2,9 @@ import uuid
 # import traceback
 # import json
 # import signal
-from datetime import datetime
+from datetime import datetime, timezone
 import requests
-from .globals import kogi_get
+from .globals import kogi_get, is_debugging
 
 
 def kogi_print(*args, **kw):
@@ -13,7 +13,7 @@ def kogi_print(*args, **kw):
 
 
 def debug_print(*args, **kw):
-    if kogi_get('debug', False):
+    if is_debugging():
         print('\033[33m[🐝]', *args, **kw)
         print('\033[0m', end='')
 
@@ -40,14 +40,19 @@ def _copylog(logdata):
     return logdata
 
 
-def record_log(right_now=False, **kargs):
+def record_log(lazy=False, **kargs):
     global SEQ, _LOG_BUFFERS, epoch
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     date = now.isoformat(timespec='seconds')
-    logdata = dict(seq=SEQ, date=date, **kargs)
+    logdata = _copylog(dict(seq=SEQ, date=date, **kargs))
+    if 'type' not in logdata:
+        logdata['type'] = 'debug'
+    if is_debugging():
+        logdata['type_orig'] = logdata['type']
+        logdata['type'] = 'debug'
     SEQ += 1
-    _LOG_BUFFERS.append(_copylog(logdata))
-    send_log(right_now=right_now)
+    _LOG_BUFFERS.append(logdata)
+    send_log(not lazy)
     return logdata
 
 
@@ -58,7 +63,7 @@ KEY = 'OjwoF3m0l20OFidHsRea3ptuQRfQL10ahbEtLa'
 prev_epoch = datetime.now().timestamp()
 
 
-def send_log(right_now=True, print=kogi_print):
+def send_log(right_now=True):
     global prev_epoch, _LOG_BUFFERS, POINT
     now = datetime.now().timestamp()
     delta = (now - prev_epoch)
@@ -66,13 +71,14 @@ def send_log(right_now=True, print=kogi_print):
     if len(_LOG_BUFFERS) > 0 and (right_now or delta > 30 or len(_LOG_BUFFERS) > 4):
         data = {
             "session": SESSION,
-            "uid": UID,
+            "uname": kogi_get('uname', ''),
             "logs": _LOG_BUFFERS,
         }
         _LOG_BUFFERS.clear()
         url = f'https://{POINT}.execute-api.ap-northeast-1.{HOST2}.com/dev'
         headers = {'x-api-key': f'A{KEY}s'}
         r = requests.post(url, headers=headers, json=data)
+        debug_print('logging', data)
         if r.status_code != 200:
             print(r.status_code)
             print(r)

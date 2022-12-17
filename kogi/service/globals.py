@@ -17,3 +17,8 @@ def kogi_get(key, value=None):
 def globals_update(data: dict):
     global _GLOBALS
     _GLOBALS.update(data)
+
+
+def is_debugging():
+    global _GLOBALS
+    return _GLOBALS.get('debug', False)

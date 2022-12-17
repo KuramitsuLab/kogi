@@ -2,7 +2,7 @@ import sys
 from IPython import get_ipython
 
 from .service import (
-    model_generate, translate, isEnglishDemo, slack_send
+    model_generate, translate, debug_print
 )
 
 from .ui import google_colab
@@ -19,17 +19,16 @@ else:
 from .liberr import kogi_exc
 from .render import Doc, encode_md
 
-_ICON = {
-    '@robot': ('システム', 'robot-fs8.png'),
-    '@ta': ('TA', 'ta-fs8.png'),
-    '@kogi': ('コギー', 'kogi-fs8.png'),
-    '@you': ('あなた', 'girl-fs8.png'),
-}
+# _ICON = {
+#     '@robot': ('システム', 'robot-fs8.png'),
+#     '@ta': ('TA', 'ta-fs8.png'),
+#     '@kogi': ('コギー', 'kogi-fs8.png'),
+#     '@you': ('あなた', 'girl-fs8.png'),
+# }
 
 
-def get_icon(tag):
-    return _ICON.get(tag, _ICON['@kogi'])
-
+# def get_icon(tag):
+#     return _ICON.get(tag, _ICON['@kogi'])
 
 class ConversationAI(object):
     slots: dict
@@ -86,25 +85,25 @@ class ConversationAI(object):
             return [self.messagefy(m) for m in ms]
         return self.messagefy(self.response(input_text))
 
-    def messagefy(self, message, tag=None, name='コギー', icon='kogi-fs8.png'):
-        if isinstance(message, str):
-            if message.startswith('@'):
-                tag, _, text = message.partition(':')
-                message = dict(text=text)
-            else:
-                message = dict(text=message)
-        elif isinstance(message, Doc):
-            message, tag = message.get_message2(tag)
-        elif not isinstance(message, dict):
-            message = dict(text=str(message))
-        name, icon = get_icon(tag)
-        if 'name' not in message:
-            message['name'] = name
-        if 'icon' not in message:
-            message['icon'] = icon
-        if 'html' not in message:
-            message['html'] = encode_md(message['text'])
-        return message
+    # def messagefy(self, message, tag=None, name='コギー', icon='kogi-fs8.png'):
+    #     if isinstance(message, str):
+    #         if message.startswith('@'):
+    #             tag, _, text = message.partition(':')
+    #             message = dict(text=text)
+    #         else:
+    #             message = dict(text=message)
+    #     elif isinstance(message, Doc):
+    #         message, tag = message.get_message2(tag)
+    #     elif not isinstance(message, dict):
+    #         message = dict(text=str(message))
+    #     name, icon = get_icon(tag)
+    #     if 'name' not in message:
+    #         message['name'] = name
+    #     if 'icon' not in message:
+    #         message['icon'] = icon
+    #     if 'html' not in message:
+    #         message['html'] = encode_md(message['text'])
+    #     return message
 
 
 _DefaultChatbot = ConversationAI()
@@ -143,7 +142,7 @@ def error_message(record):
         doc.append(record['_doc'])
     doc.add_button('@diagnosis', 'どうしたらいいの？')
     doc.add_button('@fix_code', '直してみて')
-    #doc.add_button('@xcall', '先生を呼んで')
+    # doc.add_button('@xcall', '先生を呼んで')
     return doc
 
 
@@ -152,6 +151,7 @@ def catch_and_start_kogi(exc_info=None, code: str = None, context: dict = None, 
         exc_info = sys.exc_info()
     record = kogi_exc(code=code, exc_info=exc_info,
                       caught_ex=exception, translate=translate)
+    debug_print(record)
     messages = error_message(record)
     if context:
         record.update(context)
