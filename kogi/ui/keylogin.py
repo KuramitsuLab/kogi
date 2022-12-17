@@ -105,7 +105,6 @@ span.psw {
         const ucode = document.getElementById('ucode').innerText;
         const keys = buffers.join(' ');
         //document.getElementById('code').innerText=keys;
-        console.log([uname, ucode, keys])
         //google.colab.kernel.invokeFunction('notebook.login', [uname, samples[index], ucode, keys], {});
         (async function() {
             const result = await google.colab.kernel.invokeFunction('notebook.login', [uname, samples[index], ucode, keys], {});
