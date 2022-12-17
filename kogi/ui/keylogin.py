@@ -1,12 +1,13 @@
 from kogi.service import record_log, kogi_set
 from ._google import google_colab
-from IPython.display import display, HTML
+from .message import kogi_print
+from IPython.display import JSON
 
 LOGIN_HTML = """\
 <style>
 /* Bordered form */
 form {
-    width: 60%;
+  width: 60%;
   border: 3px solid #f1f1f1;
 }
 
@@ -62,9 +63,10 @@ span.psw {
 
 </style>
 <form id="base">
+  <h4>こんにちは！ まず、あなたのことを教えてね</h4>
   <div class="container">
-    <label for="uname"><b>ニックネーム</b></label>
-    <input type="text" placeholder="コギーから呼んでもらう名前をどうぞ" id="uname" name="uname" required>
+    <label for="uname"><b>お名前</b></label>
+    <input type="text" placeholder="ニックネームをどうぞ" id="uname" name="uname" required>
 
     <label for="psw"><code id="code">print("A", "B", "C")</code></label>
     <input type="text" placeholder="上の1文をそのまま入力してみてください" id="ucode" name="ucode" required>
@@ -112,7 +114,12 @@ span.psw {
         const keys = buffers.join(' ');
         document.getElementById('code').innerText=keys;
         console.log([uname, ucode, keys])
-        google.colab.kernel.invokeFunction('notebook.login', [uname, samples[index], ucode, keys], {});
+        //google.colab.kernel.invokeFunction('notebook.login', [uname, samples[index], ucode, keys], {});
+        (async function() {
+            const result = await google.colab.kernel.invokeFunction('notebook.login', [uname, samples[index], ucode, keys], {});
+            const data = result.data['application/json'];
+            document.getElementById('base').innerText=data.text;
+        })();
         document.getElementById('base').innerText='';
     };
 </script>
@@ -135,6 +142,15 @@ def check_level(ukeys):
     return average_time, 1
 
 
+ULEVEL = [
+    '今日は一緒にがんばりましょう！',
+    'どんどん上達しているね！',
+    '今日はよいプログラミング日和だね！',
+    '今日は僕の出番はほとんどないな！',
+    '上級者キター！！',
+]
+
+
 def ulogin(uname, code, ucode, ukeys):
     print(uname, code, ucode, ukeys)
     if len(uname) > 0:
@@ -143,10 +159,10 @@ def ulogin(uname, code, ucode, ukeys):
     kogi_set(ulevel=ulevel)
     record_log(type='key', uname=uname, code=code,
                ucode=ucode, average_time=average_time, ulevel=ulevel, ukeys=ukeys)
-    kogi_dialog
+    return JSON({'text': ULEVEL[ulevel-1]})
 
 
 def login(login_func=ulogin):
     if google_colab:
         google_colab.register_callback('notebook.login', login_func)
-    display(HTML(LOGIN_HTML))
+    kogi_print(LOGIN_HTML, html=True)
