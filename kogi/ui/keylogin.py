@@ -1,4 +1,5 @@
-from kogi.service import record_log, kogi_set
+import traceback
+from kogi.service import record_log, kogi_set, debug_print
 from ._google import google_colab
 from .message import kogi_print
 from IPython.display import JSON
@@ -58,8 +59,8 @@ span.psw {
 <form id="base">
   こんにちは！ まず、あなたのことを教えてね
   <div class="container">
-    <label for="uname"><b>お名前</b></label>
-    <input type="text" placeholder="ニックネームをどうぞ" id="uname" name="uname" required>
+    <label for="uname">お名前</label>
+    <input type="text" placeholder="ニックネームでどうぞ" id="uname" name="uname" required>
     <label for="psw"><code id="code">print("A", "B", "C")</code></label>
     <input type="text" placeholder="上の1文をそのまま入力してみてください" id="ucode" name="ucode" required>
   </div>
@@ -94,7 +95,7 @@ span.psw {
         buffers.push(`${now - before} ${e.key}`);
       }
       before = now;
-      if (buffers.length > 8) {
+      if (buffers.length > 16) {
         document.getElementById('ulogin').disabled=false;
       }
     });
@@ -103,7 +104,7 @@ span.psw {
         const uname = document.getElementById('uname').innerText;
         const ucode = document.getElementById('ucode').innerText;
         const keys = buffers.join(' ');
-        document.getElementById('code').innerText=keys;
+        //document.getElementById('code').innerText=keys;
         console.log([uname, ucode, keys])
         //google.colab.kernel.invokeFunction('notebook.login', [uname, samples[index], ucode, keys], {});
         (async function() {
@@ -137,20 +138,24 @@ ULEVEL = [
     '今日は一緒にがんばりましょう！',
     'どんどん上達しているね！',
     '今日はよいプログラミング日和だね！',
-    '今日は僕の出番はほとんどないな！',
+    'プログラミングは得意そうですね！',
     '上級者キター！！',
 ]
 
 
 def ulogin(uname, code, ucode, ukeys):
-    print(uname, code, ucode, ukeys)
-    if len(uname) > 0:
-        kogi_set(uname=uname)
-    average_time, ulevel = check_level(ukeys)
-    kogi_set(ulevel=ulevel)
-    record_log(type='key', uname=uname, code=code,
-               ucode=ucode, average_time=average_time, ulevel=ulevel, ukeys=ukeys)
-    return JSON({'text': ULEVEL[ulevel-1]})
+    try:
+        debug_print(uname, code, ucode, ukeys)
+        if len(uname) > 0:
+            kogi_set(uname=uname)
+        average_time, ulevel = check_level(ukeys)
+        kogi_set(ulevel=ulevel)
+        record_log(type='key', uname=uname, code=code,
+                   ucode=ucode, average_time=average_time, ulevel=ulevel, ukeys=ukeys)
+        return JSON({'text': ULEVEL[ulevel-1]})
+    except:
+        traceback.print_exc()
+        return JSON({'text': 'よろしく！'})
 
 
 def login(login_func=ulogin):
