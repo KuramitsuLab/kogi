@@ -28,12 +28,13 @@ def start_server(restart=False):
         debug_print('sever is still running')
         pid = getpid()
         if restart and pid:
-            debug_print(f'kill -15 {pid}')
+            debug_print(f'shutdown server {pid}')
             os.system(f'kill -15 {pid}')
-        else:
+        if not restart:
             return
     script = os.path.abspath(__file__).replace('api', 'serv')
-    os.system(f'python3 {script} {_MODEL_ID} &')
+    res = os.system(f'python3 {script} {_MODEL_ID} > /dev/null 2>&1 &')
+    debug_print(f'Sever is starting. {script} {_MODEL_ID} res={res}')
 
 
 def load_model(model_id):
