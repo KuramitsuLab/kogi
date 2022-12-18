@@ -189,7 +189,7 @@ def shutdown_server(signum, frame):
             os.remove('.PID1789')
 
 
-@app.get('/shutdown')
+@app.route('/shutdown', methods=['GET'])
 def shutdown():
     shutdown_server(None, None)
     return 'Server shutting down...'
