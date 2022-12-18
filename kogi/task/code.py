@@ -12,15 +12,15 @@ def add_import(code):
             ss.append(snippet)
     if len(ss) == 0:
         return code
-    return '\n'.join(ss) + '\n\n' + code
+    return '\n'.join(ss) + '\n' + code
 
 
 @task('@translated_code')
 def translated_code(bot, kwargs):
     doc = Doc()
     doc.println('こんなコードはいかが？')
-    generated_code = kwargs['generated_text']
-    html_code = tohtml(add_import(generated_code))
+    generated_code = add_import(kwargs['generated_text'])
+    html_code = tohtml(generated_code)
     vars = []
     for kvar in get_kvars(html_code):
         var = kvar.replace('_', '')
@@ -29,7 +29,7 @@ def translated_code(bot, kwargs):
         vars.append(var)
     doc.append(Doc.code(html_code))
     recid = bot.record("@translate_code",
-                       kwargs['user_input'], generated_code)
+                       kwargs['user_input'], kwargs['generated_text'])
     doc.add_likeit(recid, copy=generated_code)
     return doc
 
