@@ -1,8 +1,6 @@
 import re
 import os
-import sys
 import numbers
-import string
 import os
 import pandas as pd
 from IPython import get_ipython
@@ -102,7 +100,7 @@ def scan_dataframes():
                 dataframe_names.append(name)
                 for column in list(value.columns):
                     column_maps[column] = name
-                    #column_maps.setdefault(column, name)
+                    # column_maps.setdefault(column, name)
     return dataframe_names, column_maps
 
 
@@ -179,13 +177,15 @@ def make_output(text, dic):
     return text
 
 
-def model_transform(text, transform_before=parse, transform_after=make_output, split_tag=False):
+def model_transform(text, beam=1, transform_before=parse, transform_after=make_output):
     debug_print(text)
     user_input, after_maps = transform_before(text)
     debug_print(user_input, after_maps)
-    tag, response_text = model_generate(user_input, split_tag=True)
-    if response_text is not None:
-        response_text = transform_after(response_text, after_maps)
-    if split_tag:
-        return tag, response_text
-    return tag+response_text
+    if beam == 1:
+        generated_text = model_generate(user_input, beam=1)
+        if generated_text is not None:
+            generated_text = transform_after(generated_text, after_maps)
+        return generated_text
+    outputs = model_generate(user_input, beam=beam)
+    outputs = [transform_after(t, dict(after_maps)) for t in outputs]
+    return outputs

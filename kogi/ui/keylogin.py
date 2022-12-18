@@ -22,7 +22,7 @@ input[type=text] {
 }
 
 /* Set a style for all buttons */
-button {
+button.login {
   color: white;
   background-color: #f44336;
   margin: 8px 0;
@@ -65,7 +65,7 @@ span.psw {
     <input type="text" placeholder="上の1文をそのまま入力してみてください" id="ucode" name="ucode" required>
   </div>
   <div class="container" style="background-color:#f1f1f1">
-    <button type="button" id="ulogin">利用規約に同意する</button>
+    <button type="button" id="ulogin" class="login">利用規約に同意する</button>
     <span class="psw"> <a href="#">利用規約とは</a></span>
   </div>
 </form>
@@ -144,6 +144,7 @@ ULEVEL = [
 
 def ulogin(uname, code, ucode, ukeys):
     try:
+        kogi_set(approved=True)
         debug_print(uname, code, ucode, ukeys)
         if len(uname) > 0:
             kogi_set(uname=uname)

@@ -1,6 +1,15 @@
 import requests
 import os
 from .s3logging import debug_print
+import socket
+
+
+def check_port(port):
+    host = "127.0.0.1"
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.connect_ex((host, port))
+    sock.close()
+    return result == 0
 
 
 def getpid():
@@ -14,29 +23,35 @@ def getpid():
 _MODEL_ID = None
 
 
+def start_server(restart=False):
+    if check_port(5000):
+        debug_print('sever is still running')
+        pid = getpid()
+        if restart and pid:
+            debug_print(f'kill -15 {pid}')
+            os.system(f'kill -15 {pid}')
+        else:
+            return
+    script = os.path.abspath(__file__).replace('api', 'serv')
+    os.system(f'python3 {script} {_MODEL_ID} &')
+
+
 def load_model(model_id):
     global _MODEL_ID
     if _MODEL_ID == model_id:
         return
-    pid = getpid()
-    if pid:
-        debug_print(f'kill -15 {pid}')
-        os.system(f'kill -15 {pid}')
-    script = os.path.abspath(__file__).replace('api', 'serv')
-    os.system(f'python3 {script} {model_id} &')
+    _MODEL_ID = model_id
+    start_server()
 
 
-def extract_tag(text):
-    if text.startswith('<'):
-        tag, end_tag, text = text.partition('>')
-        return tag+end_tag, text
-    return '', text
+def tabnl(s):
+    return s.replace('<tab>', '    ').replace('<nl>', '\n')
 
 
-def model_generate(text, max_length=128, beam=1, split_tag=False):
-    payload = {"inputs": text, "max_length": max_length}
-    #headers = {"Authorization": f"Bearer {model_key}"}
-    #response = requests.post(URL, headers=headers, json=payload)
+def model_generate(text, max_length=128, beam=1):
+    payload = {"inputs": text, "max_length": max_length, "beam": beam}
+    # headers = {"Authorization": f"Bearer {model_key}"}
+    # response = requests.post(URL, headers=headers, json=payload)
     try:
         response = requests.post("http://127.0.0.1:5000/predict",
                                  json=payload, timeout=(3.5, 7.0))
@@ -44,12 +59,12 @@ def model_generate(text, max_length=128, beam=1, split_tag=False):
         # print(text, type(output), output)
         if isinstance(output, (list, tuple)):
             output = output[0]
-        output = output.get('generated_text', '')
-        output = output.replace('<tab>', '    ').replace('<nl>', '\n')
-        if split_tag:
-            return extract_tag(output)
-        return output
+        if 'outputs' in output and beam > 1:
+            return [tabnl(s) for s in output['outputs']]
+        return tabnl(output.get('generated_text', ''))
     except Exception as e:
-        if split_tag:
-            return '<status>', f'{e}'
+        debug_print(e)
+        if not check_port(5000):
+            debug_print('Server is down. Trying to restart.')
+            start_server(restart=True)
         return f'<status>{e}'

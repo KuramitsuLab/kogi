@@ -1,3 +1,4 @@
+import pytz
 import uuid
 # import traceback
 # import json
@@ -30,7 +31,7 @@ _LOG_BUFFERS = []
 def _copylog(logdata):
     if isinstance(logdata, dict):
         copied = {}
-        for key, value in logdata:
+        for key, value in logdata.items():
             if key.startswith('_') or key.endswith('_'):
                 continue
             copied[key] = _copylog(value)
@@ -42,7 +43,7 @@ def _copylog(logdata):
 
 def record_log(lazy=False, **kargs):
     global SEQ, _LOG_BUFFERS, epoch
-    now = datetime.now(timezone.utc)
+    now = datetime.now(pytz.timezone('Asia/Tokyo'))
     date = now.isoformat(timespec='seconds')
     logdata = _copylog(dict(seq=SEQ, date=date, **kargs))
     if 'type' not in logdata:
@@ -72,16 +73,17 @@ def send_log(right_now=True):
         data = {
             "session": SESSION,
             "uname": kogi_get('uname', ''),
+            "approved": kogi_get('approved', False),
             "logs": _LOG_BUFFERS,
         }
-        _LOG_BUFFERS.clear()
         url = f'https://{POINT}.execute-api.ap-northeast-1.{HOST2}.com/dev'
         headers = {'x-api-key': f'A{KEY}s'}
         r = requests.post(url, headers=headers, json=data)
         debug_print('logging', data)
+        _LOG_BUFFERS.clear()
         if r.status_code != 200:
-            print(r.status_code)
-            print(r)
+            debug_print(r.status_code)
+            debug_print(r)
 
 
 # def logging_json(**kw):

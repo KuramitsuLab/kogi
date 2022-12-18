@@ -8,20 +8,20 @@ inputPane.addEventListener('keydown', (e) => {
         if (timer !== null) {
             clearTimeout(timer);
         }
-        timer = setTimeout(() => {
-            google.colab.kernel.invokeFunction('notebook.log', [], {});
-        }, 1000 * 60 * 5);
+        // timer = setTimeout(() => {
+        //     google.colab.kernel.invokeFunction('notebook.log', [], {});
+        // }, 1000 * 60 * 5);
     }
 });
 inputPane.addEventListener('focusin', (e) => {
     inputPane.style.height = 200;
 });
-var like = (id, score, domain) => {
-    console.log(id, score, domain)
-    google.colab.kernel.invokeFunction('notebook.like', [id, score, domain], {});
+var like = (id, score) => {
+    console.log(id, score)
+    google.colab.kernel.invokeFunction('notebook.like', [id, score], {});
 };
-var cp = (id) => {
-    const text = document.getElementById(`e${id}`).textContent;
+var copy = (id) => {
+    const text = document.getElementById(`t${id}`).value;
     console.log(text);
     navigator.clipboard.writeText(text);
     //google.colab.kernel.invokeFunction('notebook.like', [id], {});

@@ -98,7 +98,7 @@ def format_offset(doc, lineno, offset):
     offset = max(0, offset-1)
     format_arrow(doc, lineno)
     doc.print(' ' * offset)
-    doc.println('▲', color='red', bold=True)
+    doc.println('^^', color='red', bold=True)
 
 
 def syntax_exc(code, caught_ex, record):

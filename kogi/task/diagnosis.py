@@ -1,21 +1,12 @@
 
 import re
 from .common import model_generate, debug_print, Doc, status_message
-from .runner import model_parse, define_task, run_command
+from .runner import model_parse, task, run_prompt
 from kogi.liberr.rulebase import expand_eparams
 from kogi.data.error_desc import get_error_desc
 
-# _DIC = {
-#     '構文エラー': '[<B>行目で]構文が間違っています。',
-#     '構文': '[<B>行目で]構文が間違っています。',
-#     '未定義変数': '変数[<A_>]はまだ値が代入されていません。[<A_> = ... のように先に代入してみましょう。]',
-#     'インポート忘れ': 'インポートをし忘れています。@check_import',
-# }
-
 _SPECIAL = re.compile(r'\<([^\>]+)\>')
 _OPTIONAL = re.compile(r'(\[[^\]]+\])')
-_CODE = re.compile(r'(`[^`]+`)')
-_BOLD = re.compile(r'(__[^_]+__)')
 
 
 def _extract_svars(text, pat):
@@ -31,28 +22,18 @@ def _replace_svar(text, svar, kw):
     return text
 
 
-def replace_md(s):
-    for t in re.findall(_CODE, s):
-        t2 = f'<code>{t[1:-1]}</code>'
-        s = s.replace(t, t2)
-    for t in re.findall(_BOLD, s):
-        t2 = f'<b>{t[2:-2]}</b>'
-        s = s.replace(t, t2)
-    return s
-
-
-def error_format(text, kw):
+def error_format(text, kwargs):
     for svar in _extract_svars(text, _SPECIAL):
-        text = _replace_svar(text, svar, kw)
+        text = _replace_svar(text, svar, kwargs)
     for option in _extract_svars(text, _OPTIONAL):
         if '<' in option and '>' in option:
             text = text.replace(option, '')
         else:
             text = text.replace(option, option[1:-1])
-    return replace_md(text)
+    return Doc.md(text)
 
 
-def error_message(args, kw):
+def generate_error_diagnosis_message(bot, args, kwargs):
     doc = Doc()
     for w in args:
         msg = get_error_desc(w)
@@ -62,70 +43,65 @@ def error_message(args, kw):
                 msg, _, cmd = msg.rpartition('@')
                 cmd = f'@{cmd}'
                 msg = msg.strip()
-            doc.println(error_format(msg, kw))
+            doc.println(error_format(msg, kwargs))
             if cmd:
-                doc.append(run_command(cmd, args, kw))
+                doc.append(run_prompt(cmd, args, kwargs))
         else:
             doc.println(w)
     return doc
 
 
-def error_classfy(args, kw):
-    if 'emsg' in kw and 'eline' in kw:
-        emsg = kw['emsg']
-        eline = kw['eline']
-        input_text = f'<エラー分類>{eline}<sep>{emsg}'
-        tag, fixed = model_generate(input_text, split_tag=True)
-        if tag == '<status>':
-            return status_message(fixed)
-        if tag != '<エラー分類>':
-            return 'うまく分析できないよ。ごめんね。'
-        args, kw = model_parse(fixed, kw)
-        expand_eparams(kw)
-        doc = error_message(args, kw)
-        doc.likeit('@error', input_text, fixed)
-        return doc
-    else:
+@task('@root_cause_analysis @diagnosis @error')
+def error_classfy(bot, kwargs):
+    if 'emsg' not in kwargs or 'eline' not in kwargs:
         debug_print(args, kw)
         return 'エラーが見つからないよ！'
+    emsg = kwargs['emsg']
+    eline = kwargs['eline']
+    input_text = f'<エラー分類>{eline}<sep>{emsg}'
+    tag, fixed = bot.generate(input_text)
+    if tag == '<status>':
+        return status_message(fixed)
+    if tag != '<エラー分類>':
+        return 'うまく分析できないよ。ごめんね。'
+    args, kwargs = model_parse(fixed, kwargs)
+    doc = generate_error_diagnosis_message(bot, args, kwargs)
+    doc.likeit('@error', input_text, fixed)
+    return doc
 
-
-define_task('@root_cause_analysis @diagnosis @error', error_classfy)
 
 IMPORT = {
+    'math': 'import math',
+    'random': 'import random',
+    'datetime': 'import datetime',
     'np': 'import numpy as np',
     'pd': 'import pandas as pd',
     'plt': 'import matplotlib.pyplot as plt',
+    'sns': 'import seaborn as sns',
+    'scipy.stats': 'import scipy.stats',
 }
 
 
-def check_import(args, kw):
-    expand_eparams(kw)
-    if 'A_' not in kw:
-        return ''
-    x = kw['A_']
+@task('@check_import')
+def check_import(bot, kwargs):
+    expand_eparams(kwargs)
+    if 'A_' not in kwargs:
+        return None
+    x = kwargs['A_']
     if x in IMPORT:
         doc = Doc()
-        doc.println('先に')
+        doc.println('先に、次のインポートを実行しておきましょう')
         doc.append(Doc.code(IMPORT[x]))
-        doc.println('を実行するようにしよう')
         return doc
     else:
-        return f'「{x}をインポートするには？」'
+        return f'bot:「{x}をインポートするには？」'
 
 
-define_task('@check_import', check_import)
+@task('@xcopy')
+def xcopy(args, kwargs):
+    return '@ta:コピペは勉強にならないよ！'
 
 
-def xcopy(args, kw):
-    return '@pan:コピペは勉強にならないよ！'
-
-
-define_task('@xcopy', xcopy)
-
-
-def xcall(args, kw):
+@task('@xcall')
+def xcall(bot, kwargs):
     return '先生は忙しいから、まずはTAさんに質問しましょう'
-
-
-define_task('@xcall', xcall)

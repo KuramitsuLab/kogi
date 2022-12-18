@@ -55,19 +55,19 @@ def display_talk(html, dialog_target=None):
         display(HTML(CSS('dialog.css') + html))
 
 
-def display_dialog(chatbot, start=None, placeholder='質問はこちらに'):
+def display_dialog(bot, start=None, placeholder='質問はこちらに'):
     global _DIALOG_ID
     target = f'output{_DIALOG_ID}'
     _DIALOG_ID += 1
     display_main(target, placeholder)
 
     def display_user(message):
-        nonlocal chatbot, target
+        nonlocal target
         message = messagefy(message, tag='@you')
         display_talk(htmlfy_message(message), target)
 
     def display_bot_single(message):
-        nonlocal chatbot, target
+        nonlocal target
         message = messagefy(message)
         display_talk(htmlfy_message(message), target)
 
@@ -80,30 +80,30 @@ def display_dialog(chatbot, start=None, placeholder='質問はこちらに'):
 
     if google_colab:
         def ask(user_text):
-            nonlocal chatbot
+            nonlocal bot
             try:
                 user_text = user_text.strip()
                 display_user(user_text)
-                messages = chatbot.ask_message(user_text)
+                messages = bot.ask(user_text)
                 display_bot(messages)
             except:
                 display_bot('@robot:バグで処理に失敗しました。ごめんなさい')
                 traceback.print_exc()
 
-        def like(docid, score, domain):
-            nonlocal chatbot
+        def like(docid, score):
+            nonlocal bot
             try:
-                debug_print(docid, score, domain)
+                debug_print(docid, score)
+                bot.log_likeit(docid, score)
             except:
                 display_bot('@robot:バグで処理に失敗しました。ごめんなさい')
                 traceback.print_exc()
 
         def say(prompt, text):
-            nonlocal chatbot
+            nonlocal bot
             try:
-                debug_print(prompt, text)
                 display_user(text)
-                messages = chatbot.exec(prompt)
+                messages = bot.exec(prompt)
                 display_bot(messages)
             except:
                 display_bot('バグで処理に失敗しました。ごめんなさい')

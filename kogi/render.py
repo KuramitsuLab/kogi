@@ -49,10 +49,6 @@ def _html_div_color(color=None, background=None, bold=False):
     return div
 
 
-_PAIRs = []
-_BUTTON_ID = 1000
-
-
 def _text(x):
     return x.html() if hasattr(x, 'html') else str(x)
 
@@ -69,6 +65,9 @@ def _tohtml(text):
     if '</' in text or '<br>' in text:
         return text
     return text.replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br>')
+
+
+_BUTTON_ID = 1000
 
 
 class Doc(object):
@@ -137,27 +136,19 @@ class Doc(object):
         self.terms.append('\n')
         self.htmls.append('<br>')
 
-    def reg(self, input_text, output_text):
-        eid = len(_PAIRs)
-        _PAIRs.append((input_text, output_text))
-        return eid
-
-    def add_likeit(self, eid, kind):
-        kind = f"'{kind}'"
-        button = f'<button onclick="like({eid},1,{kind})">{{}}</button>'
-        self.htmls.append(Doc('いいね', html_div=button))
-        button = f'<button onclick="like({eid},0,{kind})">{{}}</button>'
-        self.htmls.append(Doc('残念', html_div=button))
-        return eid
-
-    def likeit(self, kind, input_text, output_text):
-        kind = f"'{kind}'"
-        eid = self.reg(input_text, output_text)
-        button = f'<button onclick="like({eid},1,{kind})">{{}}</button>'
-        self.htmls.append(Doc('いいね', html_div=button))
-        button = f'<button onclick="like({eid},0,{kind})">{{}}</button>'
-        self.htmls.append(Doc('残念', html_div=button))
-        return eid
+    def add_likeit(self, recid, copy=None, like='いいね👍', dislike='残念😞'):
+        global _BUTTON_ID
+        if copy:
+            _BUTTON_ID += 1
+            textarea = f'<textarea id="t{_BUTTON_ID}" style="display: none">{{}}</textarea>'
+            self.htmls.append(Doc(copy, html_div=textarea))
+            button = f'<button id="b{_BUTTON_ID}" class="likeit" onclick="copy({_BUTTON_ID});like({recid},1)">{{}}</button>'
+            self.htmls.append(Doc(f'コピー({like})', html_div=button))
+        else:
+            button = f'<button class="likeit" onclick="like({recid},1)">{{}}</button>'
+            self.htmls.append(Doc(like, html_div=button))
+        button = f'<button class="likeit" onclick="like({recid},0)">{{}}</button>'
+        self.htmls.append(Doc(dislike, html_div=button))
 
     def add_button(self, cmd, message):
         global _BUTTON_ID
@@ -174,10 +165,8 @@ class Doc(object):
         return m, tag
 
     @classmethod
-    def new_docid(cls, input_text, output_text):
-        eid = len(_PAIRs)
-        _PAIRs.append((input_text, output_text))
-        return eid
+    def md(cls, s):
+        return encode_md(s)
 
     @classmethod
     def color(cls, text, color=None, background=None, bold=False):
@@ -194,12 +183,17 @@ def tohtml(text):
     return text.replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br>')
 
 
-def term_color(text, color=None, background=None, bold=False):
-    if color and color in TERM:
-        text = TERM[color].format(text)
-    if bold:
-        text = f'\033[01m{text}\033[0m'
-    return text
+def textfy(doc):
+    if isinstance(doc, Doc):
+        return doc.text()
+    return str(doc)
+
+# def term_color(text, color=None, background=None, bold=False):
+#     if color and color in TERM:
+#         text = TERM[color].format(text)
+#     if bold:
+#         text = f'\033[01m{text}\033[0m'
+#     return text
 
 
 def html_color(text, color=None, background=None, bold=False):
@@ -214,87 +208,87 @@ def html_color(text, color=None, background=None, bold=False):
     return text
 
 
-class Render(object):
-    @ classmethod
-    def new_pairid(cls, input_text, output_text):
-        eid = len(_PAIRs)
-        _PAIRs.append((input_text, output_text))
-        return eid
+# class Render(object):
+#     @ classmethod
+#     def new_pairid(cls, input_text, output_text):
+#         eid = len(_PAIRs)
+#         _PAIRs.append((input_text, output_text))
+#         return eid
 
-    @ classmethod
-    def create_button(cls, eid, title='いいね', copy=False):
-        func = 'cp' if copy else 'like'
-        button = f'<button onlick="{func}({eid})">{title}</button>'
-        return button
+#     @ classmethod
+#     def create_button(cls, eid, title='いいね', copy=False):
+#         func = 'cp' if copy else 'like'
+#         button = f'<button onlick="{func}({eid})">{title}</button>'
+#         return button
 
-    @ classmethod
-    def create_code(cls, eid, text, title='コピー'):
-        button = Render.create_button(eid, title, copy=True)
-        if '\n' in text or '<br>' in text:
-            return f'<pre id="e{eid}">{text}</pre>'+button
-        else:
-            return f'<code id="e{eid}">{text}</code>'+button
+#     @ classmethod
+#     def create_code(cls, eid, text, title='コピー'):
+#         button = Render.create_button(eid, title, copy=True)
+#         if '\n' in text or '<br>' in text:
+#             return f'<pre id="e{eid}">{text}</pre>'+button
+#         else:
+#             return f'<code id="e{eid}">{text}</code>'+button
 
-    def __init__(self, div='{}'):
-        self.div = div
-        self.texts = []
-        self.htmls = []
-        self.terms = []
+#     def __init__(self, div='{}'):
+#         self.div = div
+#         self.texts = []
+#         self.htmls = []
+#         self.terms = []
 
-    def update(self, data):
-        data['_text'] = self.text()
-        data['_html'] = self.html()
-        data['_term'] = self.term()
+#     def update(self, data):
+#         data['_text'] = self.text()
+#         data['_html'] = self.html()
+#         data['_term'] = self.term()
 
-    def s(self, text):
-        text = str(text)
-        self.texts.append(text)
-        self.terms.append(text)
-        self.htmls.append(text)
+#     def s(self, text):
+#         text = str(text)
+#         self.texts.append(text)
+#         self.terms.append(text)
+#         self.htmls.append(text)
 
-    def print(self, text='', color=None, background=None, bold=False):
-        text = str(text)
-        self.texts.append(text)
-        self.terms.append(term_color(text, color, background, bold))
-        self.htmls.append(html_color(tohtml(text), color, background, bold))
+#     def print(self, text='', color=None, background=None, bold=False):
+#         text = str(text)
+#         self.texts.append(text)
+#         self.terms.append(term_color(text, color, background, bold))
+#         self.htmls.append(html_color(tohtml(text), color, background, bold))
 
-    def println(self, text='', color=None, background=None, bold=False):
-        text = str(text)+'\n'
-        self.texts.append(text)
-        self.terms.append(term_color(text, color, background, bold))
-        self.htmls.append(html_color(tohtml(text), color, background, bold))
+#     def println(self, text='', color=None, background=None, bold=False):
+#         text = str(text)+'\n'
+#         self.texts.append(text)
+#         self.terms.append(term_color(text, color, background, bold))
+#         self.htmls.append(html_color(tohtml(text), color, background, bold))
 
-    def extend(self, render, div='<div>{}</div>'):
-        if isinstance(render, Render):
-            self.texts.append(render.text())
-            self.htmls.append(div.format(render.html()))
-            self.terms.append(render.term())
-        else:
-            self.texts.append(render['_text'])
-            self.htmls.append(div.format(render['_html']))
-            self.terms.append(render['_term'])
+#     def extend(self, render, div='<div>{}</div>'):
+#         if isinstance(render, Render):
+#             self.texts.append(render.text())
+#             self.htmls.append(div.format(render.html()))
+#             self.terms.append(render.term())
+#         else:
+#             self.texts.append(render['_text'])
+#             self.htmls.append(div.format(render['_html']))
+#             self.terms.append(render['_term'])
 
-    def appendHTML(self, content, div='<div>{}</div>'):
-        if hasattr(content, '_repr_html_'):
-            content = content._repr_html_()
-        self.htmls.append(div.format(content))
+#     def appendHTML(self, content, div='<div>{}</div>'):
+#         if hasattr(content, '_repr_html_'):
+#             content = content._repr_html_()
+#         self.htmls.append(div.format(content))
 
-    def text(self):
-        return ''.join(self.texts)
+#     def text(self):
+#         return ''.join(self.texts)
 
-    def term(self):
-        return ''.join(self.terms)
+#     def term(self):
+#         return ''.join(self.terms)
 
-    def html(self):
-        return self.div.format(''.join(self.htmls))
+#     def html(self):
+#         return self.div.format(''.join(self.htmls))
 
-    def termtext(self):
-        return ''.join(self.terms)
+#     def termtext(self):
+#         return ''.join(self.terms)
 
-    def get_message(self, heading=''):
-        m = {}
-        if heading != '':
-            heading = html_color(heading, bold=True)+'<br>'
-        m['text'] = self.text()
-        m['html'] = heading+self.html()
-        return m
+#     def get_message(self, heading=''):
+#         m = {}
+#         if heading != '':
+#             heading = html_color(heading, bold=True)+'<br>'
+#         m['text'] = self.text()
+#         m['html'] = heading+self.html()
+#         return m

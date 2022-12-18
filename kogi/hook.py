@@ -3,7 +3,7 @@ import traceback
 import warnings
 from functools import wraps
 
-#from kogi.logger import sync_lazy_loggger
+# from kogi.logger import sync_lazy_loggger
 
 from .conversation import catch_and_start_kogi, call_and_start_kogi
 from IPython.core.interactiveshell import InteractiveShell, ExecutionResult
@@ -18,6 +18,10 @@ KOGI_PAT = re.compile('#\\s*kogi\\s*(.*)')
 HIRA_PAT = re.compile('[あ-を]')
 
 
+def is_kogi_call(s):
+    return re.search(HIRA_PAT, s)
+
+
 def _find_action(text):
     return re.findall(KOGI_PAT, text)
 
@@ -25,7 +29,7 @@ def _find_action(text):
 def _call_kogi(code, actions):
     ss = []
     for action in actions:
-        if re.search(HIRA_PAT, action):
+        if is_kogi_call(action):
             ss.append(action)
     if len(ss) > 0:
         call_and_start_kogi(ss, code)
@@ -69,7 +73,7 @@ def change_run_cell(func):
     @wraps(func)
     def run_cell(*args, **kwargs):
         try:
-            #args[1] is raw_cell
+            # args[1] is raw_cell
             return kogi_run_cell(args[0], args[1], kwargs)
         except:
             traceback.print_exc()

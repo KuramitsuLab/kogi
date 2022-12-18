@@ -1,8 +1,7 @@
 from kogi.service import *
 from .conversation import ConversationAI, set_chatbot
 from .transform import model_transform, get_kvars
-from .render import Doc, tohtml, html_color
-from .task.loading import run_task
+from .task.all import run_prompt
 
 kogi_set(
     model_id='NaoS2/multi-kogi'
@@ -11,7 +10,7 @@ kogi_set(
 
 def render_code(text, input_text=''):
     doc = Doc()
-    doc.println('えいやと')
+    doc.println('こんな感じはいかが？')
     htext = tohtml(text)
     vars = []
     for kvar in get_kvars(htext):
@@ -27,38 +26,18 @@ def render_code(text, input_text=''):
 
 class MultitaskAI(ConversationAI):
 
-    def argparse(self, text, commands=None):
-        ss = text.split()
-        commands = commands or []
-        kw = dict(self.slots)
-        args = []
-        for s in ss:
-            if s.startswith('@'):
-                commands.append(s)
-            elif '=' in s:
-                kv = s.split('=')
-                if len(kv) == 2:
-                    kw[kv[0]] = kv[1]
-            elif '_' in s:
-                kv = s.split('_')
-                if len(kv) == 2:
-                    kw[kv[0]] = kv[1]
-            else:
-                args.append(s)
-        return commands, args, kw
-
-    def exec(self, prompt):
-        return run_task(prompt, self.slots)
-
-    def response(self, user_input):
-        tag, text = model_transform(user_input, split_tag=True)
+    def response(self, input_text):
+        tag, generated_text = self.generate_transform(input_text)
         if tag.startswith('<status>'):
             return '@robot:AIモデルのロード中. しばらく待ってね'
+        kwargs = dict(user_input=input_text,
+                      generated_text=generated_text, **self.slots)
         if tag.startswith('<コード'):
-            return render_code(text, input_text=user_input)
+            return run_prompt(self, '@translated_code', kwargs)
         if tag.startswith('<コマンド'):
-            return run_task(text, self.slots)
-        return text
+            debug_print('TODO', tag, generated_text)
+            return run_prompt(self, generated_text, kwargs)
+        return generated_text
 
 
 set_chatbot(MultitaskAI())
