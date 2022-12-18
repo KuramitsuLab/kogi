@@ -7,9 +7,9 @@ from .diagnosis import IMPORT
 
 def add_import(code):
     ss = []
-    for key, code in IMPORT.items():
+    for key, snippet in IMPORT.items():
         if f'{key}.' in code:
-            ss.append(code)
+            ss.append(snippet)
     if len(ss) == 0:
         return code
     return '\n'.join(ss) + '\n\n' + code

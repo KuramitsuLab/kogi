@@ -2,6 +2,7 @@ import requests
 import os
 from .s3logging import debug_print
 import socket
+import time
 
 
 def check_port(port):
@@ -21,6 +22,7 @@ def getpid():
 
 
 _MODEL_ID = None
+_START_TIME = time.time()
 
 
 def start_server(restart=False):
@@ -34,7 +36,8 @@ def start_server(restart=False):
             return
     script = os.path.abspath(__file__).replace('api', 'serv')
     res = os.system(f'python3 {script} {_MODEL_ID} > /dev/null 2>&1 &')
-    debug_print(f'Sever is starting. {script} {_MODEL_ID} res={res}')
+    debug_print(f'Sever is starting. {_MODEL_ID} res={res}')
+    _START_TIME = time.time()
 
 
 def load_model(model_id):
@@ -65,7 +68,7 @@ def model_generate(text, max_length=128, beam=1):
         return tabnl(output.get('generated_text', ''))
     except Exception as e:
         debug_print(e)
-        if not check_port(5000):
+        if not check_port(5000) and time.time() - _START_TIME > 500:
             debug_print('Server is down. Trying to restart.')
             start_server(restart=True)
         return f'<status>{e}'
