@@ -54,7 +54,7 @@ def generate_error_diagnosis_message(bot, args, kwargs):
 @task('@root_cause_analysis @diagnosis @error')
 def error_classfy(bot, kwargs):
     if 'emsg' not in kwargs or 'eline' not in kwargs:
-        debug_print(args, kw)
+        debug_print(args, kwargs)
         return 'エラーが見つからないよ！'
     emsg = kwargs['emsg']
     eline = kwargs['eline']
