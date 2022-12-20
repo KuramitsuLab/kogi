@@ -66,7 +66,7 @@ span.psw {
   </div>
   <div class="container" style="background-color:#f1f1f1">
     <button type="button" id="ulogin" class="login">利用規約に同意する</button>
-    <span class="psw"> <a href="#">利用規約とは</a></span>
+    <span class="psw"> <a href="https://ja.wikipedia.org/wiki/政府標準利用規約">利用規約とは</a></span>
   </div>
 </form>
 <script>

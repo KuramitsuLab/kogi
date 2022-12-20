@@ -4,7 +4,7 @@ from .transform import model_transform, get_kvars
 from .task.all import run_prompt
 
 kogi_set(
-    model_id='NaoS2/multi-kogi'
+    model_id='NaoS2/multi-kogi2'
 )
 
 
