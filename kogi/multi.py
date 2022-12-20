@@ -28,6 +28,7 @@ class MultitaskAI(ConversationAI):
 
     def response(self, input_text):
         tag, generated_text = self.generate_transform(input_text)
+        self.record('@model', input_text, f'{tag}{generated_text}')
         if tag.startswith('<status>'):
             return '@robot:AIモデルのロード中. しばらく待ってね'
         kwargs = dict(user_input=input_text,
