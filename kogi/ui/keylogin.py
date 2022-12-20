@@ -101,8 +101,8 @@ span.psw {
     });
     document.getElementById('ulogin').disabled=true;
     document.getElementById('ulogin').onclick = () => {
-        const uname = document.getElementById('uname').innerText;
-        const ucode = document.getElementById('ucode').innerText;
+        const uname = document.getElementById('uname').value;
+        const ucode = document.getElementById('ucode').value;
         const keys = buffers.join(' ');
         //document.getElementById('code').innerText=keys;
         //google.colab.kernel.invokeFunction('notebook.login', [uname, samples[index], ucode, keys], {});
