@@ -41,7 +41,7 @@ def fix_code(bot, kwargs):
         return 'エラーが見つからないよ！'
 
     eline = kwargs['eline']
-    tag, fixed, _ = bot.generate(f'<コード修正>{eline}')
+    tag, fixed = bot.generate(f'<コード修正>{eline}')
     recid = bot.record('@fix_code', eline, fixed)
     debug_print(tag, fixed)
     code = Doc.code()

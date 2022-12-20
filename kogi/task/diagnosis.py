@@ -2,6 +2,7 @@
 import collections
 import json
 import re
+
 from .common import model_generate, debug_print, Doc, status_message
 from .runner import model_parse, task, run_prompt
 from kogi.liberr.rulebase import extract_params, expand_eparams
@@ -102,7 +103,8 @@ def error_classfy(bot, kwargs):
         return 'うまく分析できないよ。ごめんね。'
     args, kwargs = model_parse(fixed, kwargs)
     doc = generate_error_diagnosis_message(bot, args, kwargs)
-    doc.likeit('@error', input_text, fixed)
+    rec_id = bot.record('@error', input_text, fixed)
+    doc.add_likeit(rec_id)
     return doc
 
 
