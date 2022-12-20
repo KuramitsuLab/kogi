@@ -78,8 +78,7 @@ def send_log(right_now=True):
         }
         url = f'https://{POINT}.execute-api.ap-northeast-1.{HOST2}.com/dev'
         headers = {'x-api-key': f'A{KEY}s'}
-        r = requests.post(url, headers=headers,
-                          json=json.dumps(data, ensure_ascii=False))
+        r = requests.post(url, headers=headers, json=data)
         debug_print('logging', data)
         _LOG_BUFFERS.clear()
         if r.status_code != 200:
