@@ -17,12 +17,24 @@ def encode_md(s):
     return s
 
 
+def encode_md_text(s):
+    for t in re.findall(_CODE, s):
+        t2 = t[1:-1]
+        s = s.replace(t, t2)
+    for t in re.findall(_BOLD, s):
+        t2 = t[2:-2]
+        s = s.replace(t, t2)
+    return s
+
+
 TERM = {
+    'code': '\033[35m{}\033[0m',
     'glay': '\033[07m{}\033[0m',
     'red': '\033[31m{}\033[0m',
     'green': '\033[32m{}\033[0m',
     'yellow': '\033[33m{}\033[0m',
     'blue': '\033[34m{}\033[0m',
+    'magenta': '\033[35m{}\033[0m',
     'cyan': '\033[36m{}\033[0m',
 }
 
@@ -34,6 +46,16 @@ def _term_div_color(color=None, background=None, bold=False):
     if bold:
         div = '\033[01m{}\033[0m'.format(div)
     return div
+
+
+def encode_md_term(s):
+    for t in re.findall(_CODE, s):
+        t2 = _term_div_color('code').format(t[1:-1])
+        s = s.replace(t, t2)
+    for t in re.findall(_BOLD, s):
+        t2 = _term_div_color('bold').format(t[2:-2])
+        s = s.replace(t, t2)
+    return s
 
 
 def _html_div_color(color=None, background=None, bold=False):
@@ -119,6 +141,10 @@ class Doc(object):
                 self.htmls.append(div.format(_tohtml(str(doc))))
 
     def print(self, doc=None, color=None, background=None, bold=None):
+        if isinstance(doc, Doc):
+            self.texts.append(doc)
+            self.terms.append(doc)
+            self.htmls.append(doc)
         if isinstance(doc, str):
             doc = str(doc)
             self.texts.append(doc)
@@ -166,7 +192,11 @@ class Doc(object):
 
     @classmethod
     def md(cls, s):
-        return encode_md(s)
+        doc = Doc()
+        doc.htmls.append(encode_md(s))
+        doc.terms.append(encode_md_term(s))
+        doc.texts.append(encode_md_text(s))
+        return doc
 
     @classmethod
     def color(cls, text, color=None, background=None, bold=False):

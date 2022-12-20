@@ -1,8 +1,10 @@
 
+import collections
+import json
 import re
 from .common import model_generate, debug_print, Doc, status_message
 from .runner import model_parse, task, run_prompt
-from kogi.liberr.rulebase import expand_eparams
+from kogi.liberr.rulebase import extract_params, expand_eparams
 from kogi.data.error_desc import get_error_desc
 
 _SPECIAL = re.compile(r'\<([^\>]+)\>')
@@ -33,22 +35,56 @@ def error_format(text, kwargs):
     return Doc.md(text)
 
 
+UNDEFINED = collections.Counter()
+
+
 def generate_error_diagnosis_message(bot, args, kwargs):
     doc = Doc()
     for w in args:
         msg = get_error_desc(w)
-        if msg != '':
-            cmd = None
-            if '@' in msg:
-                msg, _, cmd = msg.rpartition('@')
-                cmd = f'@{cmd}'
-                msg = msg.strip()
-            doc.println(error_format(msg, kwargs))
-            if cmd:
-                doc.append(run_prompt(cmd, args, kwargs))
-        else:
-            doc.println(w)
+        if msg == '':
+            if bot:
+                doc.println(w)
+            else:
+                UNDEFINED.update([w])
+            continue
+        cmd = None
+        if '@' in msg:
+            msg, _, cmd = msg.rpartition('@')
+            cmd = f'@{cmd}'
+            msg = msg.strip()
+        doc.println(error_format(msg, kwargs))
+        if bot and cmd:
+            doc.append(run_prompt(bot, cmd, kwargs))
     return doc
+
+
+def test_error_diagnosis_message(jsonl_filename):
+    ss = []
+    with open(jsonl_filename) as f:
+        for line in f.readlines():
+            d = json.loads(line)
+            if 'eline' in d and 'emsg' in d and 'hint' in d:
+                etype, epat, eparams = extract_params(d['emsg'], maxlen=None)
+                d['_epat'] = epat
+                d['_eparams'] = eparams
+                args, kwargs = model_parse(d['hint'], d)
+                doc = generate_error_diagnosis_message(None, args, kwargs)
+                d2 = dict(
+                    eline=d['eline'],
+                    emsg=d['emsg'],
+                    epat=epat,
+                    eparams=eparams,
+                    hint=d['hint'],
+                    desc=doc.text().replace('\n', '')
+                )
+                ss.append(d2)
+    outputfile = jsonl_filename.replace('.jsonl', '_shion.jsonl')
+    with open(outputfile, 'w') as w:
+        for d in ss:
+            print(json.dumps(d, ensure_ascii=False), file=w)
+    print(f'Wrote {outputfile} size={len(ss)}')
+    print(UNDEFINED.most_common())
 
 
 @task('@root_cause_analysis @diagnosis @error')
