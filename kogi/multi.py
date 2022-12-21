@@ -3,25 +3,21 @@ from .conversation import ConversationAI, set_chatbot
 from .transform import model_transform, get_kvars
 from .task.all import run_prompt
 
-kogi_set(
-    model_id='NaoS2/multi-kogi2'
-)
 
-
-def render_code(text, input_text=''):
-    doc = Doc()
-    doc.println('こんな感じはいかが？')
-    htext = tohtml(text)
-    vars = []
-    for kvar in get_kvars(htext):
-        var = kvar.replace('_', '')
-        var = html_color(var, color='blue')
-        htext = htext.replace(kvar, var)
-        vars.append(var)
-    doc.append(Doc.code(htext))
-    doc.add_button('@xcopy', 'コピー')
-    doc.likeit("@codepan", input_text, text)
-    return doc
+# def render_code(text, input_text=''):
+#     doc = Doc()
+#     doc.println('こんな感じはいかが？')
+#     htext = tohtml(text)
+#     vars = []
+#     for kvar in get_kvars(htext):
+#         var = kvar.replace('_', '')
+#         var = html_color(var, color='blue')
+#         htext = htext.replace(kvar, var)
+#         vars.append(var)
+#     doc.append(Doc.code(htext))
+#     doc.add_button('@xcopy', 'コピー')
+#     doc.likeit("@codepan", input_text, text)
+#     return doc
 
 
 class MultitaskAI(ConversationAI):
