@@ -58,13 +58,14 @@ def get_kogitype(value):
         return kg_type
     if isinstance(value, numbers.Number):
         return '_数値_'
-    if getattr(value, '__iter__'):
+    if hasattr(value, '__iter__'):
         return '_イテラブル_'
     return f'_結果_'
 
 
 # みんなが使いそうな変数
-FREQUENT_NAMES = {'n': '_整数_', 'N': '_整数_', }
+FREQUENT_NAMES = {'n': '_整数_', 'N': '_整数_',
+                  'kogi': 'コギー', 'Kogi': 'コギー', 'KOGI': 'コギー'}
 
 
 def get_variable_type(name):
