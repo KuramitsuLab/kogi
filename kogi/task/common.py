@@ -1,6 +1,8 @@
-from kogi.service import debug_print, model_generate
-from kogi.render import Doc
+from kogi.service import debug_print, check_awake
+from kogi.ui.render import Doc
+from kogi.ui.wait_and_ready import wait_for_ready_doc
 
 
 def status_message(status):
-    return '@robot:言語モデルをロード中！ 待たせてごめんね！'
+    return wait_for_ready_doc(check_ready_fn=check_awake)
+    # return '@robot:言語モデルをロード中！ 待たせてごめんね！'

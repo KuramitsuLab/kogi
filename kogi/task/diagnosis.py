@@ -1,9 +1,10 @@
 
+from importlib import import_module
 import collections
 import json
 import re
 
-from .common import model_generate, debug_print, Doc, status_message
+from .common import debug_print, Doc, status_message
 from .runner import model_parse, task, run_prompt
 from kogi.liberr.rulebase import extract_params, expand_eparams
 from kogi.data.error_desc import get_error_desc
@@ -110,14 +111,49 @@ def error_classfy(bot, kwargs):
 
 IMPORT = {
     'math': 'import math',
+    'os': 'import os',
+    'sys': 'import sys',
     'random': 'import random',
     'datetime': 'import datetime',
+    'collections': 'import collections',
+    'builtins': 'import builtins',
+    'copy': 'import copy',
     'np': 'import numpy as np',
     'pd': 'import pandas as pd',
     'plt': 'import matplotlib.pyplot as plt',
     'sns': 'import seaborn as sns',
     'scipy.stats': 'import scipy.stats',
 }
+
+FROM_IMPORT = {
+    'DecisionTreeRegression': 'from sklearn.tree import DecisionTreeRegression',
+    'DecisionTreeClassifier': 'from sklearn.tree import DecisionTreeClassifier',
+}
+
+MODULE_LIST = [
+    'math',
+    'collections',
+    'sklearn.model_selection',
+    'sklearn.metrics',
+    'sklearn.metrics.pairwise',
+    'sklearn.decomposition',
+    'sklearn.linear_model',
+    'sklearn.ensemble',
+    'pytorch',
+]
+
+
+def init_module():
+    for m in MODULE_LIST:
+        try:
+            for f in dir(import_module(m)):
+                if not f.startswith('_'):
+                    FROM_IMPORT.setdefault(f, f'from {m} import {f}')
+        except ModuleNotFoundError:
+            pass
+
+
+init_module()
 
 
 @task('@check_import')
@@ -128,11 +164,32 @@ def check_import(bot, kwargs):
     x = kwargs['A_']
     if x in IMPORT:
         doc = Doc()
-        doc.println('先に、次のインポートを実行しておきましょう')
+        doc.println('先に、次のモジュールをインポートを実行しておきましょう')
         doc.append(Doc.code(IMPORT[x]))
         return doc
-    else:
-        return f'bot:「{x}をインポートするには？」'
+    if x in FROM_IMPORT:
+        doc = Doc()
+        doc.println('次の関数をインポートしてみましょう')
+        doc.append(Doc.code(FROM_IMPORT[x]))
+        return doc
+    return f'bot:「{x}をインポートするには？」'
+
+
+@task('@check_zen')
+def check_zen(bot, kwargs):
+    if 'code' not in kwargs:
+        return None
+    code = kwargs['code']
+    doc = Doc()
+    doc.println('全角文字を赤く強調してみるよ')
+    code_doc = doc.new(style='@code')
+    for c in code:
+        if ord(c) > 127:
+            code_doc.append(c, style='@zen')
+        else:
+            code_doc.append(c)
+    doc.println('コードの中では全角文字は使えないので直してね')
+    return doc
 
 
 @task('@xcopy')

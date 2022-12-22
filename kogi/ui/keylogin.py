@@ -62,7 +62,7 @@ span.psw {
     <label for="uname">お名前</label>
     <input type="text" placeholder="ニックネームでどうぞ" id="uname" name="uname" required>
     <label for="psw"><code id="code">print("A", "B", "C")</code></label>
-    <input type="text" placeholder="上の1文をそのまま入力してみてください" id="ucode" name="ucode" required>
+    <input type="text" placeholder="上のコードを入力してみてください。" id="ucode" name="ucode" required>
   </div>
   <div class="container" style="background-color:#f1f1f1">
     <button type="button" id="ulogin" class="login">利用規約に同意する</button>

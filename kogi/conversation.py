@@ -21,7 +21,7 @@ else:
         from .ui.dialog_colab import display_dialog
 
 from .liberr import kogi_exc
-from .render import Doc, textfy
+from .ui.render import Doc
 
 
 def split_tag(text):
@@ -78,7 +78,7 @@ class ConversationAI(object):
 
     def ask(self, input_text):
         message = self.response(input_text)
-        self.record('@dialog', input_text, textfy(message))
+        self.record('@dialog', input_text, str(message))
         return message
 
     def response(self, input_text):
@@ -122,6 +122,7 @@ def error_message(record):
         doc.append(record['_doc'])
     doc.add_button('@diagnosis', 'どうしたらいいの？')
     doc.add_button('@fix_code', '直してみて')
+
     # doc.add_button('@xcall', '先生を呼んで')
     return doc
 

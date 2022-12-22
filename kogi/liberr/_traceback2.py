@@ -1,7 +1,7 @@
 import sys
 import re
 import linecache
-from kogi.render import Doc
+from kogi.ui.render import Doc
 
 from .extract_vars import extract_vars
 from .rulebase import rewrite_emsg
@@ -107,7 +107,7 @@ def syntax_exc(code, caught_ex, record):
     record['lineno'] = lineno = caught_ex.lineno
     record['eline'] = text = caught_ex.text
     record['offset'] = offset = caught_ex.offset
-    doc = Doc(html_div='<pre>{}</pre>')
+    doc = Doc(style='@pre')
     format_linecode(doc, filename, lines, lineno)
     format_offset(doc, lineno, offset)
     # print(dir(caught_ex))
@@ -129,7 +129,7 @@ _VARPAT = re.compile(r'([A-Za-z_][A-Za-z_]*)')
 
 
 def find_var(parent, eline, locals={}):
-    doc = Doc(html_div='<pre>{}</pre>')
+    doc = Doc(style='@pre')
     dup = set()
     found = re.findall(_VARPAT, eline)
     if found:
@@ -138,7 +138,7 @@ def find_var(parent, eline, locals={}):
                 dup.add(name)
                 format_value(doc, locals[name], name)
     if len(dup) > 0:
-        doc = Doc(doc, html_div='<details><summary>変数の値を確認する</summary>{}</details>')
+        doc = Doc(doc, style='<details><summary>変数の値を確認する</summary>{}</details>')
         parent.append(doc)
 
 
@@ -186,7 +186,7 @@ def runtime_exc(code, tb, record):
         )
         doc = Doc()
         format_stack(doc, filename, funcname, local_vars, exprs, n_args)
-        pre = Doc(html_div='<pre>{}</pre>')
+        pre = Doc(style='@pre')
         format_linecode(pre, filename, lines, lineno)
         doc.append(pre)
         find_var(doc, line, local_vars)

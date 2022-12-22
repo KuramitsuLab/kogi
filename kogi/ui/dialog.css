@@ -1,12 +1,12 @@
 /* https: //note.com/rocky_days_/n/n5ce4576abca5 */
 html {
     --box-background: #F0F8FF;
-    /*勿忘草（わすれなぐさ） #9CC5E6;*/
     --talk-background: #FAF0E6;
     --talk-color: #333;
-    /* 桜色 */
-    --code-background: #DCDCDC;
+    --code-background: white;
     --code-color: #111;
+    --button-background: darkblue;
+    --button-color: #eee;
 }
 
 html[theme=dark] {
@@ -15,22 +15,40 @@ html[theme=dark] {
     --talk-color: #eee;
     --code-background: #111;
     --code-color: #eee;
+    --button-background: darkblue;
+    --button-color: #eee;
 }
 
-pre,
-code {
+.code {
+    font-size: 1.4em;
+    font-family: monospace;
     background: var(--code-background);
+    color: var(--code-code);
+}
+
+.zen {
+    font-size: 1.4em;
+    font-family: monospace;
+    background: pink;
     color: var(--code-code);
 }
 
 button {
     font-size: 10px;
+    background: var(--button-background);
+    color: var(--button-color);
+    margin: 16px 4px;
+    padding: 8px 8px;
+}
+
+/* Add a hover effect for buttons */
+button:hover {
+    opacity: 0.5;
 }
 
 .sb-box {
     position: relative;
     overflow: hidden;
-    /*background: var(--box-background);*/
 }
 
 /* アイコン画像 */

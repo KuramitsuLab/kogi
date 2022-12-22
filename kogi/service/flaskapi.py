@@ -27,7 +27,7 @@ _START_TIME = time.time()
 
 def start_server(restart=False):
     if check_port(5000):
-        debug_print('sever is still running')
+        debug_print('Model server is still running')
         pid = getpid()
         if restart and pid:
             debug_print(f'shutdown server {pid}')
@@ -36,7 +36,7 @@ def start_server(restart=False):
             return
     script = os.path.abspath(__file__).replace('api', 'serv')
     res = os.system(f'python3 {script} {_MODEL_ID} > /dev/null 2>&1 &')
-    debug_print(f'Sever is starting. {_MODEL_ID} res={res}')
+    debug_print(f'Model sever is starting. {_MODEL_ID} res={res}')
     _START_TIME = time.time()
 
 
@@ -44,8 +44,20 @@ def load_model(model_id):
     global _MODEL_ID
     if _MODEL_ID == model_id:
         return
+    restart = (_MODEL_ID is not None)
     _MODEL_ID = model_id
-    start_server()
+    start_server(restart=restart)
+
+
+def check_awake():
+    try:
+        payload = {"inputs": "おはよう", "max_length": 128, "beam": 1}
+        requests.post("http://127.0.0.1:5000/predict",
+                      json=payload, timeout=(3.5, 7.0))
+        return True
+    except Exception as e:
+        debug_print(e)
+        return False
 
 
 def tabnl(s):
@@ -53,10 +65,10 @@ def tabnl(s):
 
 
 def model_generate(text, max_length=128, beam=1):
-    payload = {"inputs": text, "max_length": max_length, "beam": beam}
     # headers = {"Authorization": f"Bearer {model_key}"}
     # response = requests.post(URL, headers=headers, json=payload)
     try:
+        payload = {"inputs": text, "max_length": max_length, "beam": beam}
         response = requests.post("http://127.0.0.1:5000/predict",
                                  json=payload, timeout=(3.5, 7.0))
         output = response.json()

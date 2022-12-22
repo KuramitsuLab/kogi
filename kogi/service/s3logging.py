@@ -1,10 +1,11 @@
+import inspect
 import pytz
 import uuid
 import json
 # import traceback
 # import signal
-from datetime import datetime, timezone
 import requests
+from datetime import datetime, timezone
 from .globals import kogi_get, is_debugging
 
 
@@ -15,7 +16,12 @@ def kogi_print(*args, **kw):
 
 def debug_print(*args, **kw):
     if is_debugging():
-        print('\033[33m[🐝]', *args, **kw)
+        filename = inspect.currentframe().f_back.f_code.co_filename
+        lineno = inspect.currentframe().f_back.f_lineno
+        if '/kogi/' in filename:
+            _, _, filename = filename.rpartition('/kogi/')
+        loc = f'[🐝{filename}:{lineno}]'
+        print('\033[35m' + loc, *args, **kw)
         print('\033[0m', end='')
 
 

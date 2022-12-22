@@ -1,6 +1,6 @@
 from kogi.service import kogi_get
 from .content import ICON, CSS
-from kogi.render import Doc, encode_md
+from kogi.ui.render import Doc, encode_md
 
 from IPython.display import display, HTML
 

@@ -6,11 +6,14 @@ from IPython.display import display, HTML
 from kogi.service import kogi_get, debug_print
 from .message import messagefy, htmlfy_message
 
+# <div id="{target}" class="box" style="height: {height}px"></div>
+
+
 if google_colab:
     _DIALOG_HTML = '''\
 <div id="dialog">
     {script}
-    <div id="{target}" class="box" style="height: {height}px"></div>
+    <div id="{target}" class="box"></div>
     <div style="text-align: right"><textarea id="input" placeholder="{placeholder}"></textarea></div>
 </div>'''
 else:
@@ -47,6 +50,7 @@ if(target !== undefined) {{
 
 
 def display_talk(html, dialog_target=None):
+
     if dialog_target:
         html = html.replace('\\', '\\\\')
         html = html.replace('`', '\\`')
