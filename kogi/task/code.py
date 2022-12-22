@@ -1,4 +1,3 @@
-from kogi.ui.typewriter import typewriter_doc
 from kogi.transform import get_kvars
 from .common import Doc, debug_print
 from .runner import task
