@@ -57,20 +57,25 @@ def messagefy(doc, mention=None):
     ), doc.get_script()
 
 
+_DIALOG_ID = 0
+
+
+def replace_dialog_id(s):
+    return s.replace('XYZ', str(_DIALOG_ID))
+
+
 def display_dialog_css():
     display(HTML(CSS('dialog.css')))
 
 
 def display_dialog_js():
-    display(JS('dialog.js'))
+    display(HTML(replace_dialog_id(JS('dialog.js'))))
 
 
 def exec_js(script):
     if script != '':
         display(HTML(f'<script>\n{script}</script>'))
 
-
-_DIALOG_ID = 1
 
 _DIALOG = '''\
 <div id="dialogXYZ" class="box">{}</div>
@@ -87,10 +92,6 @@ _TEXTAREA = '''\
 '''
 
 
-def replace_dialog_id(s):
-    return s.replace('XYZ', str(_DIALOG_ID))
-
-
 def display_dialog(doc='', height=None, placeholder=None):
     global _DIALOG_ID
     _DIALOG_ID += 1
@@ -104,6 +105,7 @@ def display_dialog(doc='', height=None, placeholder=None):
     else:
         html = _DIALOG.format(html)
     if placeholder:
+        display_dialog_js()
         html = html+_TEXTAREA.format(placeholder)
     html = replace_dialog_id(html)
     script = replace_dialog_id(script)
