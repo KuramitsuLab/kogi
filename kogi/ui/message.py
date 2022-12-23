@@ -68,10 +68,8 @@ def display_dialog_css():
     display(HTML(CSS('dialog.css')))
 
 
-def display_dialog_js():
-    js = replace_dialog_id(JS('dialog.js'))
-    debug_print(js)
-    display(HTML(js))
+def display_dialog_script():
+    return JS('dialog.js')
 
 
 def exec_js(script):
@@ -93,6 +91,13 @@ _TEXTAREA = '''\
 </div>
 '''
 
+_BLOCK = '''\
+<div>
+{}
+{}
+</div>
+'''
+
 
 def display_dialog(doc='', height=None, placeholder=None):
     global _DIALOG_ID
@@ -107,8 +112,8 @@ def display_dialog(doc='', height=None, placeholder=None):
     else:
         html = _DIALOG.format(html)
     if placeholder:
-        display_dialog_js()
         html = html+_TEXTAREA.format(placeholder)
+    html = _BLOCK.format(display_dialog_script(), html)
     html = replace_dialog_id(html)
     script = replace_dialog_id(script)
     display(HTML(html))
