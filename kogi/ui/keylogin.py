@@ -1,7 +1,7 @@
 import traceback
 from kogi.service import record_log, kogi_set, debug_print
 from ._google import google_colab
-from .message import kogi_print
+from .message import kogi_print, Doc
 from IPython.display import JSON
 
 LOGIN_HTML = """\
@@ -95,7 +95,7 @@ span.psw {
         buffers.push(`${now - before} ${e.key}`);
       }
       before = now;
-      if (buffers.length > 16) {
+      if (buffers.length > samples[index].length) {
         document.getElementById('ulogin').disabled=false;
       }
     });
@@ -145,7 +145,7 @@ ULEVEL = [
 def ulogin(uname, code, ucode, ukeys):
     try:
         kogi_set(approved=True)
-        debug_print(uname, code, ucode, ukeys)
+        # debug_print(uname, code, ucode, ukeys)
         if len(uname) > 0:
             kogi_set(uname=uname)
         average_time, ulevel = check_level(ukeys)
@@ -161,4 +161,6 @@ def ulogin(uname, code, ucode, ukeys):
 def login(login_func=ulogin):
     if google_colab:
         google_colab.register_callback('notebook.login', login_func)
-    kogi_print(LOGIN_HTML, html=True, height=280)
+    doc = Doc.HTML(LOGIN_HTML)
+    doc.set_mention('@ta')
+    kogi_print(doc, height=280)
