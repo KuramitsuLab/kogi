@@ -69,7 +69,9 @@ def display_dialog_css():
 
 
 def display_dialog_js():
-    display(HTML(replace_dialog_id(JS('dialog.js'))))
+    js = replace_dialog_id(JS('dialog.js'))
+    debug_print(js)
+    display(HTML(js))
 
 
 def exec_js(script):
