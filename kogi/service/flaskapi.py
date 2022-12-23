@@ -56,7 +56,9 @@ def check_awake():
                       json=payload, timeout=(3.5, 7.0))
         return True
     except Exception as e:
-        debug_print(e)
+        if not check_port(5000) and time.time() - _START_TIME > 60*10:
+            debug_print('Server is down. Trying to restart.')
+            start_server(restart=True)
         return False
 
 
@@ -80,7 +82,7 @@ def model_generate(text, max_length=128, beam=1):
         return tabnl(output.get('generated_text', ''))
     except Exception as e:
         debug_print(e)
-        if not check_port(5000) and time.time() - _START_TIME > 500:
+        if not check_port(5000) and time.time() - _START_TIME > 60*10:
             debug_print('Server is down. Trying to restart.')
             start_server(restart=True)
         return f'<status>{e}'

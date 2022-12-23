@@ -62,13 +62,12 @@ def display_dialog_css():
 
 
 def display_dialog_js():
-    JS('dialog.js')
+    display(JS('dialog.js'))
 
 
 def exec_js(script):
     if script != '':
-        debug_print(f'<script>{script}</script>')
-        display(HTML(f'<script>{script}</script>'))
+        display(HTML(f'<script>\n{script}</script>'))
 
 
 _DIALOG_ID = 1
