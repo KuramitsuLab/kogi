@@ -237,15 +237,16 @@ class Doc(object):
         return doc
 
     @classmethod
-    def HTML(cls, html, text, css=None, script=None):
+    def HTML(cls, html, text=None, css=None, script=None):
         doc = Doc()
         frmid = frameid()
         html = html.replace('ZYX', str(frmid))
         if css:
             html = css+html
         doc.htmls.append(html)
-        doc.terms.append(encode_md_term(text))
-        doc.texts.append(encode_md_text(text))
+        if text:
+            doc.terms.append(encode_md_term(text))
+            doc.texts.append(encode_md_text(text))
         if script:
             script = script.replace('ZYX', str(frmid))
             doc.script = script
