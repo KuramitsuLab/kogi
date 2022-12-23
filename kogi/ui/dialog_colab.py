@@ -1,27 +1,27 @@
 import traceback
-from .content import JS, CSS, ICON
 from ._google import google_colab
 
-from IPython.display import display, HTML
-from kogi.service import kogi_get, debug_print
-from .message import messagefy, htmlfy_message
+from kogi.service import debug_print
+from .message import display_dialog, append_message
 
 # <div id="{target}" class="box" style="height: {height}px"></div>
 
-
+"""
 if google_colab:
     _DIALOG_HTML = '''\
 <div id="dialog">
-    {script}
-    <div id="{target}" class="box"></div>
+    <div id="{target}" class="box" style="height: {height}px"></div>
     <div style="text-align: right"><textarea id="input" placeholder="{placeholder}"></textarea></div>
 </div>'''
 else:
     _DIALOG_HTML = '''\
 <div id="dialog">
-    {script}
     <div id="{target}" class="box" style="height: {height}px"></div>
 </div>'''
+
+
+def display_dialog_js():
+    display(JS('dialog.js'))
 
 
 def display_main(target, placeholder=''):
@@ -118,3 +118,59 @@ def display_dialog(bot, start=None, placeholder='質問はこちらに'):
     if start:
         display_bot(start)
     return display_bot, display_user
+"""
+
+
+def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'):
+    target = display_dialog(start, height, placeholder)
+
+    def display_user(doc):
+        nonlocal target
+        doc.set_mention('@you')
+        append_message(doc, target)
+
+    def display_bot_single(doc):
+        nonlocal target
+        append_message(doc, target)
+
+    def display_bot(doc):
+        if isinstance(doc, list):
+            for d in doc:
+                display_bot_single(d)
+        else:
+            display_bot_single(d)
+
+    if google_colab:
+        def ask(user_text):
+            nonlocal bot
+            try:
+                user_text = user_text.strip()
+                display_user(user_text)
+                doc = bot.ask(user_text)
+                display_bot(doc)
+            except:
+                display_bot('@robot:バグで処理に失敗しました。ごめんなさい')
+                traceback.print_exc()
+
+        def like(docid, score):
+            nonlocal bot
+            try:
+                debug_print(docid, score)
+                bot.log_likeit(docid, score)
+            except:
+                display_bot('@robot:バグで処理に失敗しました。ごめんなさい')
+                traceback.print_exc()
+
+        def say(prompt, text):
+            nonlocal bot
+            try:
+                display_user(text)
+                doc = bot.exec(prompt)
+                display_bot(doc)
+            except:
+                display_bot('@robot:バグで処理に失敗しました。ごめんなさい')
+                traceback.print_exc()
+        google_colab.register_callback('notebook.ask', ask)
+        google_colab.register_callback('notebook.like', like)
+        google_colab.register_callback('notebook.say', say)
+    return target

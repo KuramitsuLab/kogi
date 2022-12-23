@@ -75,8 +75,6 @@ def _term(x):
     return x.term() if hasattr(x, 'term') else str(x)
 
 
-_BUTTON_ID = 1000
-
 _DEFAULT_STYLE = ('{}', '{}')
 
 _STYLE_MAP = {
@@ -100,6 +98,17 @@ def _tohtml(text):
 
 def _html(x):
     return x._repr_html_() if hasattr(x, '_repr_html_') else _tohtml(str(x))
+
+
+_FRAMEID = 1000
+
+
+def frameid(frmid=None):
+    global _FRAMEID
+    if frmid:
+        return frmid
+    _FRAMEID += 1
+    return _FRAMEID
 
 
 class Doc(object):
@@ -169,13 +178,12 @@ class Doc(object):
         self.terms.append('\n')
         self.htmls.append('<br>')
 
-    def add_likeit(self, recid, copy=None, like='いいね', dislike='残念'):
-        global _BUTTON_ID
+    def add_likeit(self, recid, frmid=None, copy=None, like='いいね', dislike='残念'):
+        frmid = frameid(frmid)
         if copy:
-            _BUTTON_ID += 1
-            textarea = f'<textarea id="t{_BUTTON_ID}" style="display: none">{{}}</textarea>'
+            textarea = f'<textarea id="t{frmid}" style="display: none">{{}}</textarea>'
             self.htmls.append(Doc(f'</>{copy}', style=textarea))
-            button = f'<button id="b{_BUTTON_ID}" class="likeit" onclick="copy({_BUTTON_ID});like({recid},1)">{{}}</button>'
+            button = f'<button id="b{frmid}" class="likeit" onclick="copy({frmid});like({recid},1)">{{}}</button>'
             self.htmls.append(Doc(f'コピー({like})', style=button))
         else:
             button = f'<button class="likeit" onclick="like({recid},1)">{{}}</button>'
@@ -183,19 +191,42 @@ class Doc(object):
         button = f'<button class="likeit" onclick="like({recid},0)">{{}}</button>'
         self.htmls.append(Doc(dislike, style=button))
 
-    def add_button(self, cmd, message):
-        global _BUTTON_ID
-        _BUTTON_ID += 1
+    def add_button(self, cmd, message, frmid=None):
+        frmid = frameid(frmid)
         cmd = f"'{cmd}'"
-        button = f'<button id="b{_BUTTON_ID}" onclick="say({cmd},{_BUTTON_ID})">{{}}</button>'
+        button = f'<button id="b{frmid}" onclick="say({cmd},{frmid})">{{}}</button>'
         self.htmls.append(Doc(message, style=button))
 
-    def get_message2(self, tag):
-        m = {}
-        m['text'] = str(self)
-        m['term'] = self.term()
-        m['html'] = self._repr_html_()
-        return m, tag
+    def set_mention(self, mention):
+        self.mention = mention
+
+    def get_mention(self, default=None):
+        if hasattr(self, 'mention'):
+            return self.mention
+        for d in self.htmls:
+            if isinstance(d, Doc):
+                mention = d.get_mention()
+                if mention:
+                    return mention
+        return default
+
+    def get_script(self):
+        script = ''
+        if hasattr(self, 'script'):
+            script = self.script
+        for d in self.htmls:
+            if isinstance(d, Doc):
+                s = d.get_script()
+                if s != '':
+                    script += s
+        return script
+
+    # def get_message2(self, tag):
+    #     m = {}
+    #     m['text'] = str(self)
+    #     m['term'] = self.term()
+    #     m['html'] = self._repr_html_()
+    #     return m, tag
 
     @classmethod
     def md(cls, s, style=None):
@@ -207,16 +238,15 @@ class Doc(object):
 
     @classmethod
     def HTML(cls, html, text, css=None, script=None):
-        global _BUTTON_ID
-        _BUTTON_ID += 1
         doc = Doc()
-        html = html.replace('XYZ', f'X{_BUTTON_ID}')
+        frmid = frameid()
+        html = html.replace('ZYX', str(frmid))
         if css:
-            if script:
-                html = css+script+html
-            else:
-                html = css+html
+            html = css+html
         doc.htmls.append(html)
         doc.terms.append(encode_md_term(text))
         doc.texts.append(encode_md_text(text))
+        if script:
+            script = script.replace('ZYX', str(frmid))
+            doc.script = script
         return doc

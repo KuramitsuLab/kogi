@@ -11,14 +11,16 @@ from .ui import google_colab
 from .transform import model_generate, model_transform
 from .task.all import run_prompt
 
-if google_colab:
-    from .ui.dialog_colab import display_dialog
-else:
-    try:
-        import ipywidgets
-        from .ui.dialog_ipywidgets import display_dialog
-    except ModuleNotFoundError:
-        from .ui.dialog_colab import display_dialog
+from .ui.dialog_colab import start_dialog
+# if google_colab:
+#     from .ui.dialog_colab import start_dialog
+# else:
+#     pass
+#     # try:
+#     #     import ipywidgets
+#     #     from .ui.dialog_ipywidgets import display_dialog
+#     # except ModuleNotFoundError:
+#     #     from .ui.dialog_colab import display_dialog
 
 from .liberr import kogi_exc
 from .ui.render import Doc
@@ -99,8 +101,8 @@ def set_chatbot(chatbot):
 def call_and_start_kogi(actions, code: str = None, context: dict = None):
     for user_text in actions:
         _DefaultChatbot.update(context)
-        messages = _DefaultChatbot.ask(user_text)
-        display_dialog(_DefaultChatbot, messages)
+        doc = _DefaultChatbot.ask(user_text)
+        start_dialog(_DefaultChatbot, doc)
         return
 
 
@@ -153,4 +155,4 @@ def catch_and_start_kogi(exc_info=None, code: str = None, context: dict = None, 
     if context:
         record.update(context)
     _DefaultChatbot.update(record)
-    display_dialog(_DefaultChatbot, start=messages)
+    start_dialog(_DefaultChatbot, start=messages)

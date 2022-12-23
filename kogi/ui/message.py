@@ -1,8 +1,9 @@
-from kogi.service import kogi_get
-from .content import ICON, CSS
-from kogi.ui.render import Doc, encode_md
+from kogi.service import kogi_get, debug_print
+from .content import ICON, CSS, JS
+from kogi.ui.render import Doc
 
 from IPython.display import display, HTML
+from ._google import google_colab
 
 _ICON = {
     '@robot': ('システム', 'robot-fs8.png'),
@@ -16,35 +17,11 @@ def get_icon(tag):
     return _ICON.get(tag, _ICON['@kogi'])
 
 
-def messagefy(message, tag=None):
-    if isinstance(message, str):
-        if message.startswith('@'):
-            tag, _, text = message.partition(':')
-            message = dict(text=text)
-        else:
-            message = dict(text=message)
-    elif isinstance(message, Doc):
-        message, tag = message.get_message2(tag)
-    elif not isinstance(message, dict):
-        message = dict(text=str(message))
-    name, icon = get_icon(tag)
-    if tag == '@you':
-        message['bot'] = False
-        name = kogi_get('uname', name)
-    if 'name' not in message:
-        message['name'] = name
-    if 'icon' not in message:
-        message['icon'] = icon
-    if 'html' not in message:
-        message['html'] = encode_md(message['text'])
-    return message
-
-
 _BOT_HTML = '''\
 <div class="sb-box">
 <div class="icon-img icon-img-left"><img src="{icon}" width="60px"></div>
 <div class="icon-name icon-name-left">{name}</div>
-<div class="sb-side sb-side-left"><div class="sb-txt sb-txt-left">{html}</div></div>
+<div class="sb-side sb-side-left"><div class="sb-txt sb-txt-left">{content}</div></div>
 </div>
 '''
 
@@ -52,45 +29,128 @@ _USER_HTML = '''\
 <div class="sb-box">
 <div class="icon-img icon-img-right"><img src="{icon}" width="60px"></div>
 <div class="icon-name icon-name-right">{name}</div>
-<div class="sb-side sb-side-right"><div class="sb-txt sb-txt-right">{text}</div></div>
+<div class="sb-side sb-side-right"><div class="sb-txt sb-txt-right">{content}</div></div>
 </div>
 '''
 
 
-def htmlfy_message(msg):
-    msg['icon'] = ICON(msg['icon'])
-    if msg.get('bot', True):
-        return _BOT_HTML.format(**msg)
+def messagefy(doc, mention=None):
+    if isinstance(doc, str):
+        if doc.startswith('@'):
+            mention, _, text = doc.partition(':')
+            doc = Doc(text)
+        else:
+            doc = Doc(doc)
+    if mention is None:
+        mention = doc.get_mention('@kogi')
+    name, icon = get_icon(mention)
+    if mention == '@you':
+        return _USER_HTML.format(
+            icon=ICON(icon),
+            name=kogi_get('uname', name),
+            content=doc._repr_html_(),
+        ), doc.get_script()
+    return _BOT_HTML.format(
+        icon=ICON(icon),
+        name=name,
+        content=doc._repr_html_(),
+    ), doc.get_script()
+
+
+def display_dialog_css():
+    display(HTML(CSS('dialog.css')))
+
+
+def display_dialog_js():
+    JS('dialog.js')
+
+
+def exec_js(script):
+    if script != '':
+        debug_print(f'<script>{script}</script>')
+        display(HTML(f'<script>{script}</script>'))
+
+
+_DIALOG_ID = 1
+
+_DIALOG = '''\
+<div id="dialogXYZ" class="box">{}</div>
+'''
+
+_DIALOG2 = '''\
+<div id="dialogXYZ" class="box" style="height: {}px">{}</div>
+'''
+
+_TEXTAREA = '''\
+<div style="text-align: right">
+<textarea id="inputXYZ" placeholder="{}"></textarea>
+</div>
+'''
+
+
+def replace_dialog_id(s):
+    return s.replace('XYZ', str(_DIALOG_ID))
+
+
+def display_dialog(doc='', height=None, placeholder=None):
+    global _DIALOG_ID
+    _DIALOG_ID += 1
+    display_dialog_css()
+    if doc == '':
+        html, script = '', ''
     else:
-        return _USER_HTML.format(**msg)
+        html, script = messagefy(doc)
+    if height:
+        html = _DIALOG2.format(height, html)
+    else:
+        html = _DIALOG.format(html)
+    if placeholder:
+        html = html+_TEXTAREA.format(placeholder)
+    html = replace_dialog_id(html)
+    script = replace_dialog_id(script)
+    display(HTML(html))
+    exec_js(script)
+    return replace_dialog_id('#dialogXYZ')
 
 
-_PRINT = '''<div class="box" style="height: {}px">{}</div>'''
+APPEND_JS = '''\
+<script>
+var target = document.getElementById("dialogXYZ");
+var content = `{html}`;
+if(target !== undefined) {{
+    target.insertAdjacentHTML('beforeend', content);
+    target.scrollTop = target.scrollHeight;
+}}
+</script>
+'''
 
 
-def _kogi_print(m, tag, height=80):
-    html = htmlfy_message(messagefy(m, tag))
-    display(HTML(CSS('dialog.css')+_PRINT.format(height, html)))
+def append_message(doc, target):
+    html, script = messagefy(doc)
+    if google_colab:
+        with google_colab.output.redirect_to_element(target):
+            display(HTML(replace_dialog_id(html)))
+    else:
+        html = html.replace('\\', '\\\\')
+        html = html.replace('`', '\\`')
+        display(HTML(replace_dialog_id(APPEND_JS).format(html=html)))
+    exec_js(replace_dialog_id(script))
+    return target
 
 
 def kogi_print(*args, **kwargs):
-    tag = kwargs.get('tag', None)
-    height = kwargs.get('height', 80)
+    height = kwargs.get('height', None)
+    target = kwargs.get('target', None)
+    placeholder = kwargs.get('placeholder', None)
     if len(args) > 0:
-        if isinstance(args[0], dict):
-            d = args[0]
-            if 'name' in d and 'icon' in d and 'text' in d:
-                _kogi_print(d, tag, height)
-                return
         if isinstance(args[0], Doc):
-            _kogi_print(args[0], tag, height)
-            return
-        if kwargs.get('html', True):
-            m = {'html': str(args[0])}
-            _kogi_print(m, tag, height)
-            return
-        if isinstance(args[0], Doc):
-            _kogi_print(args[0], tag, height)
-            return
+            if target:
+                return append_message(args[0], target)
+            else:
+                return display_dialog(args[0], placeholder=placeholder, height=height)
     sep = kwargs.get('sep', ' ')
-    _kogi_print(sep.join(str(s) for s in args), tag, height)
+    text = sep.join(str(s) for s in args)
+    if target:
+        return append_message(text, target)
+    else:
+        return display_dialog(text, placeholder=placeholder, height=height)
