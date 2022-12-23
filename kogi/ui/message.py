@@ -7,7 +7,7 @@ from ._google import google_colab
 
 _ICON = {
     '@robot': ('システム', 'robot-fs8.png'),
-    '@ta': ('TA', 'ta-fs8.png'),
+    '@ta': ('ももパン', 'ta-fs8.png'),
     '@kogi': ('コギー', 'kogi-fs8.png'),
     '@you': ('あなた', 'girl-fs8.png'),
 }

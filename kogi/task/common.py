@@ -4,5 +4,6 @@ from kogi.ui.wait_and_ready import wait_for_ready_doc
 
 
 def status_message(status):
-    return wait_for_ready_doc(check_ready_fn=check_awake)
-    # return '@robot:言語モデルをロード中！ 待たせてごめんね！'
+    doc = wait_for_ready_doc(check_ready_fn=check_awake)
+    doc.set_mention('@ta')
+    return doc
