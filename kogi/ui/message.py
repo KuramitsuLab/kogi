@@ -88,6 +88,15 @@ _DIALOG2 = '''\
 _TEXTAREA = '''\
 <div style="text-align: right">
 <textarea id="inputXYZ" placeholder="{}"></textarea>
+<script>
+document.getElementById("inputXYZ").addEventListener('keydown', (e) => {
+    if (e.keyCode == 13) {
+        var text = inputPane.value;
+        google.colab.kernel.invokeFunction('notebook.ask', [text], {});
+        inputPane.value = '';
+    }
+});
+</script>
 </div>
 '''
 
