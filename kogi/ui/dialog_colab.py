@@ -145,6 +145,7 @@ def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'
             nonlocal bot
             try:
                 user_text = user_text.strip()
+                debug_print(user_text)
                 display_user(user_text)
                 doc = bot.ask(user_text)
                 display_bot(doc)
@@ -164,6 +165,7 @@ def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'
         def say(prompt, text):
             nonlocal bot
             try:
+                debug_print(text, prompt)
                 display_user(text)
                 doc = bot.exec(prompt)
                 display_bot(doc)
