@@ -87,7 +87,7 @@ _DIALOG2 = '''\
 
 _TEXTAREA = '''\
 <div style="text-align: right">
-<textarea id="inputXYZ" placeholder="{}"></textarea>
+<textarea id="inputXYZ" placeholder="@placeholder@"></textarea>
 <script>
 document.getElementById("inputXYZ").addEventListener('keydown', (e) => {
     if (e.keyCode == 13) {
@@ -121,7 +121,7 @@ def display_dialog(doc='', height=None, placeholder=None):
     else:
         html = _DIALOG.format(html)
     if placeholder:
-        html = html+_TEXTAREA.format(placeholder)
+        html = html+_TEXTAREA.replace('@placeholder@', placeholder)
     html = _BLOCK.format(display_dialog_script(), html)
     html = replace_dialog_id(html)
     script = replace_dialog_id(script)
