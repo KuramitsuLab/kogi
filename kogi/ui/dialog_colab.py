@@ -137,7 +137,7 @@ def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'
             for d in doc:
                 display_bot_single(d)
         else:
-            display_bot_single(d)
+            display_bot_single(doc)
 
     if google_colab:
         def ask(user_text):
