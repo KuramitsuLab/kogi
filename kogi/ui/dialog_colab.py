@@ -126,8 +126,7 @@ def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'
 
     def display_user(doc):
         nonlocal target
-        doc.set_mention('@you')
-        append_message(doc, target)
+        append_message(doc, target, mention='@you')
 
     def display_bot_single(doc):
         nonlocal target
