@@ -68,7 +68,7 @@ def display_dialog_css():
     display(HTML(CSS('dialog.css')))
 
 
-def display_dialog_script():
+def dialog_script():
     return JS('dialog.js')
 
 
@@ -91,9 +91,9 @@ _TEXTAREA = '''\
 <script>
 document.getElementById("inputXYZ").addEventListener('keydown', (e) => {
     if (e.keyCode == 13) {
-        var text = inputPane.value;
-        google.colab.kernel.invokeFunction('notebook.ask', [text], {});
-        inputPane.value = '';
+        const pane = document.getElementById("inputXYZ");
+        google.colab.kernel.invokeFunction('notebook.ask', [pane.value], {});
+        pane.value = '';
     }
 });
 </script>
@@ -122,7 +122,7 @@ def display_dialog(doc='', height=None, placeholder=None):
         html = _DIALOG.format(html)
     if placeholder:
         html = html+_TEXTAREA.replace('@placeholder@', placeholder)
-    html = _BLOCK.format(display_dialog_script(), html)
+    html = _BLOCK.format(dialog_script(), html)
     html = replace_dialog_id(html)
     script = replace_dialog_id(script)
     display(HTML(html))
