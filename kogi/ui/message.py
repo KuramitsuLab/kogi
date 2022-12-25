@@ -143,7 +143,7 @@ if(target !== undefined) {{
 
 
 def append_message(doc, target, mention=None):
-    html, script = messagefy(doc)
+    html, script = messagefy(doc, mention=mention)
     if google_colab:
         with google_colab.redirect_to_element(target):
             display(HTML(replace_dialog_id(html)))

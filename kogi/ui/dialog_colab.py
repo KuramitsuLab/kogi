@@ -149,8 +149,8 @@ def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'
                 doc = bot.ask(user_text)
                 display_bot(doc)
             except:
-                display_bot('@robot:バグで処理に失敗しました。ごめんなさい')
                 traceback.print_exc()
+                display_bot('@robot:バグで処理に失敗しました。ごめんなさい')
 
         def like(docid, score):
             nonlocal bot
@@ -158,8 +158,8 @@ def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'
                 debug_print(docid, score)
                 bot.log_likeit(docid, score)
             except:
-                display_bot('@robot:バグで処理に失敗しました。ごめんなさい')
                 traceback.print_exc()
+                display_bot('@robot:バグで処理に失敗しました。ごめんなさい')
 
         def say(prompt, text):
             nonlocal bot
@@ -169,8 +169,8 @@ def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'
                 doc = bot.exec(prompt)
                 display_bot(doc)
             except:
-                display_bot('@robot:バグで処理に失敗しました。ごめんなさい')
                 traceback.print_exc()
+                display_bot('@robot:バグで処理に失敗しました。ごめんなさい')
         google_colab.register_callback('notebook.ask', ask)
         google_colab.register_callback('notebook.like', like)
         google_colab.register_callback('notebook.say', say)
