@@ -145,7 +145,7 @@ if(target !== undefined) {{
 def append_message(doc, target):
     html, script = messagefy(doc)
     if google_colab:
-        with google_colab.output.redirect_to_element(target):
+        with google_colab.redirect_to_element(target):
             display(HTML(replace_dialog_id(html)))
     else:
         html = html.replace('\\', '\\\\')
