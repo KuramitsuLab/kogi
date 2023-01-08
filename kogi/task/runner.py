@@ -1,10 +1,36 @@
+import re
 from .common import debug_print
+
+_CODE = re.compile(r'(`[^`]+`)')
+# _SVAR = re.compile(r'\<[A-Z]\>')
+
+
+def _extract_patterns(text, pat):
+    return re.findall(pat, text)
+
+
+def encode(text):
+    codec = {}
+    for code in _extract_patterns(text, _CODE):
+        # if re.search(_SVAR, code):
+        #     continue
+        key = f'@{id(code)}@'
+        text = text.replace(code, key)
+        codec[key] = code[1:-1]
+    return text, codec
+
+
+def decode(text, codec):
+    for key, code in codec.items():
+        text = text.replace(key, code)
+    return text
 
 
 def model_parse(text, kw, commands=None):
     kw = dict(kw)
     args = []
-    ss = text.split()
+    text, codec = encode(text)
+    ss = text.replace('　', ' ').split()
     for s in ss:
         if s.startswith('@'):
             if isinstance(commands, list):
@@ -12,11 +38,10 @@ def model_parse(text, kw, commands=None):
             else:
                 args = []
         elif '=' in s:
-            kv = s.split('=')
-            if len(kv) == 2:
-                kw[kv[0]] = kv[1]
+            k, _, v = s.partition('=')
+            kw[k] = decode(v, codec)
         else:
-            args.append(s)
+            args.append(decode(s, codec))
     return args, kw
 
 

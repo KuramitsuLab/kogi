@@ -1,98 +1,151 @@
 
 from importlib import import_module
-import collections
-import json
 import re
 
 from .common import debug_print, Doc, status_message
 from .runner import model_parse, task, run_prompt
 from kogi.liberr.rulebase import extract_params, expand_eparams
-from kogi.data.error_desc import get_error_desc
+from kogi.data.diagnosis_ja import kwconv_diagnosis
 
+_CODE = re.compile(r'(`[^`]+`)')
 _SPECIAL = re.compile(r'\<([^\>]+)\>')
+_SVAR = re.compile(r'\<[A-Z]\>')
 _OPTIONAL = re.compile(r'(\[[^\]]+\])')
 
 
-def _extract_svars(text, pat):
+def _extract_patterns(text, pat):
     return re.findall(pat, text)
 
 
-def _replace_svar(text, svar, kw):
-    if svar in kw:
-        return text.replace(f'<{svar}>', str(kw[svar]))
-    svar2 = f'_{svar}'
-    if svar2 in kw:
-        return text.replace(f'<{svar}>', str(kw[svar2]))
+def encode(text):
+    codec = {}
+    for code in _extract_patterns(text, _CODE):
+        if re.search(_SVAR, code):
+            continue
+        key = f'@{id(code)}@'
+        text = text.replace(code, key)
+        codec[key] = code
+    return text, codec
+
+
+def decode(text, codec):
+    for key, code in codec.items():
+        text = text.replace(key, code)
     return text
 
 
-def error_format(text, kwargs):
-    for svar in _extract_svars(text, _SPECIAL):
-        text = _replace_svar(text, svar, kwargs)
-    for option in _extract_svars(text, _OPTIONAL):
-        if '<' in option and '>' in option:
-            text = text.replace(option, '')
+def conv_nop(s):
+    return s
+
+
+def conv_unquote(s):
+    if len(s) > 2 and s[0] in '"`\'' and s[-1] in '"`\'':
+        return s[1:-1]
+    return s
+
+
+CONV_FUNC = {
+    '': conv_nop,
+    'unquote': conv_unquote,
+}
+
+
+def _replace_special_token(text, svar, kwargs):
+    conv_fn = conv_unquote
+    if '_' in svar:
+        svar, _, funcname = svar.partition('_')
+        if funcname not in CONV_FUNC:
+            debug_print(f'{funcname} not in CONV_FUNC: {svar}_{funcname}')
+            CONV_FUNC[funcname] = conv_unquote
+        conv_fn = CONV_FUNC[funcname]
+    if svar in kwargs:
+        if svar < "D":
+            replaced_text = conv_fn(str(kwargs[svar]))
         else:
-            text = text.replace(option, option[1:-1])
-    return Doc.md(text)
+            replaced_text = str(kwargs[svar])
+    else:
+        replaced_text = f'<{svar}>'  # そのまま
+    return text.replace(f'<{svar}>', replaced_text)
 
 
-UNDEFINED = collections.Counter()
+def replace_special(text, kwargs):
+    svars = _extract_patterns(text, _SPECIAL)
+    for svar in svars:
+        text = _replace_special_token(text, svar, kwargs)
+        if f'<{svar}>' in text:
+            return None
+    return text
 
 
-def generate_error_diagnosis_message(bot, args, kwargs):
+def select_option(option, kwargs):
+    if '|' in option:
+        for local_option in option.split('|'):
+            local_option = replace_special(local_option, kwargs)
+            if local_option is not None:
+                return local_option
+        return ''
+    option = replace_special(option, kwargs)
+    if option is None:
+        return ''
+    return option
+
+
+def format_trago(text, kwargs):
+    text, codec = encode(text)
+    for option in _extract_patterns(text, _OPTIONAL):
+        text = text.replace(option, select_option(option[1:-1], kwargs))
+    text = decode(text, codec)
+    return text
+
+# UNDEFINED = collections.Counter()
+
+
+def expand_keywords(text, d={}, bot=None, kwconv_fn=kwconv_diagnosis, UNDEFINED=None):
+    keywords, kwargs = model_parse(text, d)
+    if '_eparams' in kwargs:
+        for X, val in zip('ABC', kwargs['_eparams']):
+            kwargs[X] = val
     doc = Doc()
-    for w in args:
-        msg = get_error_desc(w)
-        if msg == '':
-            if bot:
-                doc.println(w)
-            else:
-                UNDEFINED.update([w])
+    for keyword in keywords:
+        msg = kwconv_fn(keyword)
+        if msg is None or msg == '':
+            if UNDEFINED is not None:
+                UNDEFINED.update([keyword])
             continue
-        cmd = None
+        prompt_doc = None
         if '@' in msg:
             msg, _, cmd = msg.rpartition('@')
-            cmd = f'@{cmd}'
+            cmd = f'@{cmd.strip()}'
             msg = msg.strip()
-        doc.println(error_format(msg, kwargs))
-        if bot and cmd:
-            doc.append(run_prompt(bot, cmd, kwargs))
+            prompt_doc = run_prompt(bot, cmd, kwargs)
+        msg_doc = Doc.md(format_trago(msg, kwargs))
+        doc.append(msg_doc)
+        if prompt_doc:
+            doc.append(prompt_doc)
     return doc
 
 
-def test_error_diagnosis_message(jsonl_filename):
-    ss = []
-    with open(jsonl_filename) as f:
-        for line in f.readlines():
-            d = json.loads(line)
-            if 'eline' in d and 'emsg' in d and 'hint' in d:
-                etype, epat, eparams = extract_params(d['emsg'], maxlen=None)
-                d['_epat'] = epat
-                d['_eparams'] = eparams
-                args, kwargs = model_parse(d['hint'], d)
-                doc = generate_error_diagnosis_message(None, args, kwargs)
-                d2 = dict(
-                    eline=d['eline'],
-                    emsg=d['emsg'],
-                    epat=epat,
-                    eparams=eparams,
-                    hint=d['hint'],
-                    desc=doc.text().replace('\n', '')
-                )
-                ss.append(d2)
-    outputfile = jsonl_filename.replace('.jsonl', '_shion.jsonl')
-    with open(outputfile, 'w') as w:
-        for d in ss:
-            print(json.dumps(d, ensure_ascii=False), file=w)
-    print(f'Wrote {outputfile} size={len(ss)}')
-    print(UNDEFINED.most_common())
+def convert_error_diagnosis(d, bot=None, UNDEFINED=None):
+    etype, epat, eparams = extract_params(d['emsg'], maxlen=None)
+    d['_etype'] = etype
+    d['_epat'] = epat
+    d['_eparams'] = eparams
+    doc = expand_keywords(d['hint'], d, bot=bot, UNDEFINED=UNDEFINED)
+    d2 = dict(
+        eline=d['eline'],
+        emsg=d['emsg'],
+        epat=epat,
+        eparams=eparams,
+        hint=d['hint'],
+        desc=str(doc).replace('\n', '')
+    )
+    return d2
 
 
 @task('@root_cause_analysis @diagnosis @error')
 def error_classfy(bot, kwargs):
     if 'emsg' not in kwargs or 'eline' not in kwargs:
-        debug_print(args, kwargs)
+        debug_print(kwargs)
         return 'エラーが見つからないよ！'
     emsg = kwargs['emsg']
     eline = kwargs['eline']
@@ -102,8 +155,7 @@ def error_classfy(bot, kwargs):
         return status_message(fixed)
     if tag != '<エラー分類>':
         return 'うまく分析できないよ。ごめんね。'
-    args, kwargs = model_parse(fixed, kwargs)
-    doc = generate_error_diagnosis_message(bot, args, kwargs)
+    doc = expand_keywords(fixed, dict(kwargs), bot=bot)
     rec_id = bot.record('@error', input_text, fixed)
     doc.add_likeit(rec_id)
     return doc
@@ -158,19 +210,18 @@ init_module()
 
 @task('@check_import')
 def check_import(bot, kwargs):
-    expand_eparams(kwargs)
-    if 'A_' not in kwargs:
+    if 'A' not in kwargs:
         return None
-    x = kwargs['A_']
+    x = kwargs['A']
     if x in IMPORT:
         doc = Doc()
         doc.println('先に、次のモジュールをインポートを実行しておきましょう')
-        doc.append(Doc.code(IMPORT[x]))
+        doc.append(Doc(IMPORT[x], style='@code'))
         return doc
     if x in FROM_IMPORT:
         doc = Doc()
         doc.println('次の関数をインポートしてみましょう')
-        doc.append(Doc.code(FROM_IMPORT[x]))
+        doc.append(Doc(FROM_IMPORT[x], style='@code'))
         return doc
     return f'bot:「{x}をインポートするには？」'
 

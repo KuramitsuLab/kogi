@@ -116,7 +116,7 @@ def error_message(record):
         doc.println(record['_epat'], color='#888888')
     # print(record)
     if '_stacks' in record:
-        for stack in record['_stacks']:
+        for stack in record['_stacks'][::-1]:  # 逆順に
             if '-packages' in stack['filename']:
                 continue
             doc.append(stack['_doc'])
