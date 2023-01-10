@@ -1,10 +1,6 @@
 import re
 import warnings
-from fractions import Fraction
 import random
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 import collections
 
 N_TRY = 8
@@ -38,8 +34,8 @@ while @@ $cmp$ $num$:
     return $num$ $op$ @@
 if @@+$num$ $cmp$ $num$:
 if @@ $cmp$ $num$ and $bool$:
-if $bool$ and @@ $cmp$ $num$:
-if @@ $cmp$ $num$ or $bool$:
+if $bool$ $and$ @@ $cmp$ $num$:
+if @@ $cmp$ $num$ $and$ $bool$:
 if $bool$ or @@ $cmp$ $num$:
 """
 
@@ -48,21 +44,22 @@ assert @@
 '''
 
 
-SNIPET = {
+SNIPPET_TEMPLATE = {
     'bool': _COMMON+_BOOL,
     'float': _COMMON+_NUM,
 }
 
 
-def init_snipet():
-    for key, value in SNIPET.items():
-        SNIPET[key] = [v for v in value.splitlines() if '@@' in v]
+def init_SNIPPET_TEMPLATE():
+    for key, value in SNIPPET_TEMPLATE.items():
+        SNIPPET_TEMPLATE[key] = [v for v in value.splitlines() if '@@' in v]
 
 
-init_snipet()
+init_SNIPPET_TEMPLATE()
 
 
 _UNMASKED = {
+    '$num$': '$Cint$ $int$ $Cfloat$ $float$'.split(),
     '$cmp$': '== != < <= >= > =='.split(),
     '$op$': '+ - * ** / // % + -'.split(),
     '$and$': 'and or'.split(),
@@ -77,7 +74,7 @@ def add_random(ty, code):
     _UNMASKED[ty].append(code)
 
 
-def get_random(ty):
+def _get_random(ty):
     if ty in _UNMASKED:
         return random.choice(_UNMASKED[ty])
     ty = ty[1:-1]  # $int$を外す
@@ -86,60 +83,22 @@ def get_random(ty):
     return random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 
+def get_random(ty):
+    result = _get_random(ty)
+    if result.startswith('$'):
+        return get_random(result)
+    return result
+
+
 _MASK = re.compile(r'(\$[^\$]+\$)')
 
 
-def replace_mask(code, self_expr):
-    code = code.replace('@@', self_expr)
+def replace_mask(code, self_expr='@@'):
     for mask in re.findall(_MASK, code):
         selected = get_random(mask)
         code = code.replace(mask, selected, 1)
-    return code
-
-
-# def print__9(*a, **kw):
-#     pass
-
-
-# def default_vars():
-#     aList = [0, 1, 2]
-#     aSList = ['0', '1', '2']
-#     aName = ['A', 'B', 'C']
-#     aDict = {'A': 0, 'B': 1, 'C': 2}
-#     aTuple = (0, 1, 2)
-#     aSet = {0, 1, 2}
-#     aFraction = Fraction(1, 2)
-#     aArray = np.array(aList[:])
-#     aArray2d = np.array([[0, 1, 2], [1, 1, 1], [2, 1, 0]])
-#     df = pd.DataFrame({'A': aList[:], 'B': aList[:], 'C': aSList[:]})
-#     # print(df.iat[0, 0])
-#     return dict(
-#         C=C, o=C(), obj=C(), Person=Person, o__1=Person(), obj__1=Person(),
-#         x__1=0.0, y__1=1.0, z__1=1.0,
-#         v__1=0.0, value__1=1.0, result__1=0.0, ans__1=1.0, res__1=1.0,
-#         alpha__1=0.5, beta__1=2.0, mu__1=0.0, sigma__1=1.0, kappa__1=1.0,
-#         s="1", S="0", t="2", u="1", value__2="1",
-#         name="A", key="A", text="text",
-#         file="file.txt", path="file.csv", filepath="file.txt", filename="file.txt",
-#         A__3=aList[:], xs=aList[:], ys=aList[:], lst=aList[:], values=aList[:],
-#         names=aName, keys=aName,
-#         pair=aTuple, point=aTuple, xy=aTuple, xyz=aTuple,
-#         d=aDict, dic=aDict,
-#         st__4=aSet, v__4=aSet, A__4=aSet, B__4=aSet,  # Set
-#         x__4=aFraction, y__4=aFraction, a__4=aFraction, b__4=aFraction,  # Fraction
-#         a__5=aArray, b__5=aArray, x__5=aArray, y__5=aArray,  # np.array
-#         mat=aArray2d.copy(), mat2=aArray2d.copy(),
-#         df=df, df2=df, df3=df, ds=df["A"], ds2=df["B"], ds3=df["C"],
-#         _列名_="A", _列名2_="B", _列名3_="C",
-#         binary=b'0', buffer=b'0', b__2=b'000',
-#         X__9=None, s__9=None, df__9=None, a__9=None,
-#         print__9=print__9,
-#         np=np, pd=pd,
-#     )
-
-
-# def extra_vars(d):
-#     pass
+    code2 = code.replace('@@', self_expr)
+    return code2, code  # テンプレートも返す
 
 
 def isinstance_all(x, C):
@@ -262,11 +221,6 @@ class spec(object):
                     add_random(self.key, code)
                     return code
         return random.choice(self.test_values)
-
-
-# def old_testcase(TESTCASE):
-#     for x in TESTCASE:
-#         print(' '.join('``' if s is None else s for s in x[1:]))
 
 
 def default_specs():
@@ -630,9 +584,12 @@ class Seed(object):
         return tyv
 
     def apply_snippet(self, ret, code):
-        if ret not in SNIPET:
-            return code
-        return replace_mask(SNIPET[ret], code)
+        if '@@' in ret:
+            return replace_mask(ret, code)
+        if ret not in SNIPPET_TEMPLATE:
+            return code, '@@'
+        ret = random.choice(SNIPPET_TEMPLATE[ret])
+        return replace_mask(ret, code)
 
     def record(self, d):
         if self.logs is None:

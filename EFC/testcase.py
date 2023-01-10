@@ -5,18 +5,25 @@ _DEBUG = '''\
 int from_bytes <bytes> byteorder='big'
 <float:数> + <float:数>
 <str> replace <str> <str>
-math sin <float> #D信じるな@SE
+math sin <float> #D信じるな
 <str:列> __get <int>
+`` tuple <list>
 '''
 
 
 def DebugFaultSuite():
     import math
+
+    def myfunc(x, y=0, z=0):
+        return (y+z)/x
+
     NS = dict(
         import_math='import math',
         math=math,
+        f=myfunc,
     )
     SPECS = []
+
     # SPECS = [
     #     spec('class', E='クラス名',
     #          types=type(type(0)),
@@ -28,7 +35,7 @@ def DebugFaultSuite():
     #          exprs=['type(?)'],
     #          ),
     # ]
-    return NS, SPECS, _DEBUG
+    return NS, SPECS, _DEBUG,
 
 
 _BUILTINS = '''\

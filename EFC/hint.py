@@ -9,8 +9,8 @@ def debug(msg):
 
 
 def bq(s):
-    s = str(s).strip()
-    if ' ' in s:
+    s = str(s)
+    if not s.replace('.', '_').isidentifier():
         s = f'`{s}`'
     return s
 
@@ -20,6 +20,7 @@ TE_HINT = [
     ("'type' object is not subscriptable", "Cもしくは B修正_添字コール"),
     ("'set' object is not subscriptable", "Eセット添字"),
     ("not subscriptable", "E添字元"),
+    ("does not support item assignment", "E変更不能な列"),
     ("unhashable type: 'slice'", '_構文ミス 修正_スライス'),
     ("can only concatenate", 'C両辺同じ'),
     ('must be', 'Cエラー読め'),
@@ -72,6 +73,18 @@ _NOTE = re.compile(r'(__D[^\x00-\x7F]+)')
 
 
 class Hint(object):
+    @classmethod
+    def bq(cls, s):
+        return bq(s)
+
+    @classmethod
+    def head(cls, s):
+        if s == '':
+            return s
+        h, t = s[:-1], s[-1]
+        _, _, h = h.rpartition(' ')
+        return h+t
+
     def __init__(self, *args, **kwargs):
         self.main = []
         self.params = {}
@@ -136,14 +149,14 @@ class Hint(object):
 
     def check_from_code(self, emsg: str, code: str):
         for note in re.findall(_NOTE, code):
-            print('@@@', note)
+            # print('@@@', note)
             self.append(note[2:])
             emsg, code = self.remove_suffix(emsg, code, note)
         if '__A' in code:
             self.append('D危険な変数名')
             emsg, code = self.remove_suffix(emsg, code, '__A')
         if '__Z' in code:
-            self.append('C自作クラス')
+            self.append('C自作なら')
             emsg, code = self.remove_suffix(emsg, code, '__Z')
         return emsg, code
 
