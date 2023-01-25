@@ -52,8 +52,9 @@ def load_model(model_id):
         tokenizer = AutoTokenizer.from_pretrained(model_id, is_fast=False)
         model = AutoModelForSeq2SeqLM.from_pretrained(model_id)
 
+    # https://github.com/huggingface/transformers/issues/2542
     model = torch.quantization.quantize_dynamic(
-        model, {torch.nn.Linear},
+        model, {torch.nn.Bilinear},
         dtype=torch.qint8
     )
 
