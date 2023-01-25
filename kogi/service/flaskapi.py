@@ -1,8 +1,8 @@
-import requests
 import os
-from .s3logging import debug_print
+import requests
 import socket
 import time
+from .s3logging import debug_print
 
 
 def check_port(port):
@@ -55,10 +55,20 @@ def check_awake():
         requests.post("http://127.0.0.1:5000/predict",
                       json=payload, timeout=(3.5, 7.0))
         return True
-    except Exception as e:
+    except requests.Timeout as e:
+        debug_print(e)
         if not check_port(5000) and time.time() - _START_TIME > 60*10:
             debug_print('Server is down. Trying to restart.')
             start_server(restart=True)
+        return False
+    except requests.ConnectionError as e:
+        debug_print(e)
+        if not check_port(5000) and time.time() - _START_TIME > 60*10:
+            debug_print('Server is down. Trying to restart.')
+            start_server(restart=True)
+        return False
+    except Exception as e:
+        debug_print(e)
         return False
 
 
@@ -67,8 +77,6 @@ def tabnl(s):
 
 
 def model_generate(text, max_length=128, beam=1):
-    # headers = {"Authorization": f"Bearer {model_key}"}
-    # response = requests.post(URL, headers=headers, json=payload)
     try:
         payload = {"inputs": text, "max_length": max_length, "beam": beam}
         response = requests.post("http://127.0.0.1:5000/predict",

@@ -4,6 +4,7 @@ import signal
 import sys
 import os
 import warnings
+import traceback
 
 _PREV_TIME = time.time()
 
@@ -142,12 +143,14 @@ def predict():
             return jsonify({'model_id': _MODEL_ID, 'generated_text': output})
         outputs, scores = generate_beam(text, max_length=max_length, beam=beam)
         return jsonify({
-            'model_id': _MODEL_ID, 'generated_text': output[0],
+            'model_id': _MODEL_ID,
+            'generated_text': output[0],
             'outputs': outputs, 'scores': scores,
         })
     except Exception as e:
+        tb = traceback.format_exc()
         return jsonify({
-            'model_id': _MODEL_ID, 'generated_text': f'<status>{e}',
+            'model_id': _MODEL_ID, 'generated_text': f'<status>{tb}',
         })
 
 
