@@ -151,7 +151,7 @@ def predict():
     except Exception as e:
         tb = traceback.format_exc()
         return jsonify({
-            'model_id': _MODEL_ID, 'generated_text': f'<status>{tb}',
+            'model_id': _MODEL_ID, 'generated_text': f'<error>{tb}',
         })
 
 
