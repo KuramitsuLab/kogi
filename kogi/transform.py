@@ -122,7 +122,7 @@ def append_map(maps, key, value):
 
 def parse(text):
     dataframe_names, column_maps = scan_dataframes()
-    debug_print(dataframe_names, column_maps)
+    # debug_print(dataframe_names, column_maps)
     after_maps = {}
     tree = _parser(text)
     ss = []
@@ -179,9 +179,9 @@ def make_output(text, dic):
 
 
 def model_transform(text, beam=1, transform_before=parse, transform_after=make_output):
-    debug_print(text)
+    # debug_print(text)
     user_input, after_maps = transform_before(text)
-    debug_print(user_input, after_maps)
+    # debug_print(user_input, after_maps)
     if beam == 1:
         generated_text = model_generate(user_input, beam=1)
         if generated_text is not None:
