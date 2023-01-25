@@ -1,4 +1,4 @@
-from expr import spec
+from expr import spec, FaultSuite
 
 _DEBUG = '''\
 `` abs <float:数>
@@ -16,13 +16,14 @@ def DebugFaultSuite():
 
     def myfunc(x, y=0, z=0):
         return (y+z)/x
-
-    NS = dict(
+    suite = FaultSuite()
+    suite.namespace = dict(
         import_math='import math',
         math=math,
         f=myfunc,
     )
-    SPECS = []
+    suite.specs = []
+    suite.testcase(_DEBUG)
 
     # SPECS = [
     #     spec('class', E='クラス名',
@@ -35,7 +36,7 @@ def DebugFaultSuite():
     #          exprs=['type(?)'],
     #          ),
     # ]
-    return NS, SPECS, _DEBUG,
+    return suite
 
 
 _BUILTINS = '''\

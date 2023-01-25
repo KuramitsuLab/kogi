@@ -17,6 +17,21 @@ def debug(msg):
         DUP[msg] = msg
 
 
+_TYPO_METHOD = 'char_swap missing_char extra_char nearby_char similar_char repeated_char unichar'.split()
+
+
+def misspell(s):
+    if '__' in s and not s.endswith('__'):
+        name, sep, suffix = s.rpartition('__')
+        return f'{misspell(name)}{sep}{suffix}'
+    gen = typo.StrErrer(s)
+    s2 = str(getattr(gen, random.choice(_TYPO_METHOD))().result)
+    if s != s2 and (len(s) < 6 or random.random() < 0.8):
+        return s2
+    gen = typo.StrErrer(s2)
+    return str(getattr(gen, random.choice(_TYPO_METHOD))().result)
+
+
 N_VAR, N_FUNC, N_LEFT, N_RIGHT, FORMATS = 0, 1, 2, 3, 4
 
 VOCAB = {
@@ -36,9 +51,10 @@ def is_identifer(s: str):
 
 
 DISABLE = -1
-KEYWORD = -2
+RENAME = -5
 INC = -3
 DEC = -4
+KEYWORD = -2
 
 
 class CodeCase(object):
@@ -130,8 +146,25 @@ class CodeCase(object):
             return self.tbase
         return self.tparams[index-1]
 
+    def set_all(self):
+        base = self.seed.get(self.tbase)
+        params = [self.seed.get(x) for x in self.tparams]
+        return base, params
+
     def expect(self, index):
-        return self.seed.expect(self.get_type(index))
+        if isinstance(index, int):
+            return self.seed.expect(self.get_type(index))
+        return self.seed.expect(index)
+
+    def wrong_type(self, index=None):
+        if isinstance(index, int):
+            return self.seed.wrong_type(self.get(index))
+        return self.seed.wrong_tyoe(index)
+
+    def wrong_value(self, index):
+        if isinstance(index, int):
+            return self.seed.wrong_value(self.get(index))
+        return self.seed.wrong_value(index=None)
 
     def get(self, index):
         if index == 0:
@@ -143,6 +176,9 @@ class CodeCase(object):
             if index == DISABLE:
                 self.checkpoint = (index, value)
                 self.seed.disable(value)
+            elif index == RENAME:
+                self.checkpoint = (index, self.name)
+                self.name = value
             elif index == KEYWORD:
                 self.checkpoint = (index, self.kwarg)
                 self.kwarg = value
@@ -165,6 +201,8 @@ class CodeCase(object):
         if index < 0:
             if index == DISABLE:
                 self.seed.enable(value)
+            elif index == RENAME:
+                self.name = value
             elif index == KEYWORD:
                 self.kwarg = value
             elif index == INC:
@@ -174,6 +212,9 @@ class CodeCase(object):
         else:
             self.set(index, value)
         delattr(self, 'checkpoint')
+
+    def rewrite_name(self, name):
+        self.set(RENAME, name)
 
     def disable(self, name: str):
         self.set(DISABLE, name)
@@ -232,7 +273,7 @@ class CodeCase(object):
         hint.append(W=W, E=E, S=S, U=U)
         return hint
 
-    def check_emsg(self, code=None):
+    def check_emsg(self, error_type=None, code=None):
         self.code = self.gencode() if code is None else code
         self.emsg = ''
         test_vars = self.seed.test_vars()
@@ -250,6 +291,10 @@ class CodeCase(object):
                 self.ret = ''  # 評価できない
             except:
                 self.ret = ''  # 評価できない
+        self.rollback()
+        if isinstance(error_type, str):
+            return self.emsg != '' and error_type in self.emsg
+        return self.emsg != ''
 
     def apply_snippet(self, templ, code=None):
         return self.seed.apply_snippet(templ, code or self.code)[0]
@@ -259,7 +304,7 @@ class CodeCase(object):
         self.ret = ''
         return self.code
 
-    def record(self, hint, fix=None):
+    def record(self, hint, fix=None, apply_snippet=True):
         if self.emsg == '':
             return False
         hint.update(self.emsg, self.code, self.seed.local_hints)
@@ -433,78 +478,62 @@ def SE2(cc: CodeCase):  # 構文エラーを発生
     return False
 
 
-STYPO = 'char_swap missing_char extra_char nearby_char similar_char repeated_char unichar'.split()
-
-
-def misspell(s):
-    if '__' in s and not s.endswith('__'):
-        name, sep, suffix = s.rpartition('__')
-        return f'{misspell(name)}{sep}{suffix}'
-    gen = typo.StrErrer(s)
-    s2 = str(getattr(gen, random.choice(STYPO))().result)
-    if s != s2 and (len(s) < 3 or random.random() < 0.8):
-        return s2
-    gen = typo.StrErrer(s2)
-    return str(getattr(gen, random.choice(STYPO))().result)
-
-
-def NE(cc, maxlen=4):
-    if len(cc.name) < maxlen or cc.is_user_defined() or cc.is_operator:
+def NameErrorAttr(cc: CodeCase):
+    if cc.is_user_defined() or cc.is_operator:
         return False
     correct = cc.name
-    wrong = misspell(cc.name)
-    hint = cc.gen_hint('Aタイポ', W=wrong, S=cc.name)
-    cc.name = wrong
-    cc.check_emsg()
-    if cc.emsg != '':
-        cc.name = correct
-        return cc.record(hint, fix=cc.gencode())
+    name_len = len(correct)
+    while name_len > 2:
+        wrong = misspell(correct)
+        hint = cc.gen_hint('Aタイポ B修正_属性名', W=wrong, S=correct)
+        cc.rewrite_name(wrong)
+        cc.check_emsg()
+        if cc.emsg != '':
+            cc.record(hint, fix=cc.gencode())
+        name_len -= 5
     return False
 
 
-def NE2(cc):
-    return NE(cc, maxlen=8)
+def NE(cc):
+    return NameErrorAttr(cc)
 
 
-def NM(cc: CodeCase):
-    if cc.is_operator or cc.is_indexer:
-        return False
+def _find_import_name(cc):
     for name in [cc.tbase]+cc.tparams:
         fix = f'import_{name}'
         if fix in cc.seed.ns:
-            break
-        fix = None
-    if fix is None:
+            return name, cc.seed.ns[fix]
+    return None, None
+
+
+def NameErrorImport(cc: CodeCase):
+    if cc.is_operator or cc.is_indexer:
         return False
-    fix = cc.seed.ns[fix]
-    hint = cc.gen_hint('Aインポート忘れ', U=fix)
-    cc.seed.disable(name)
-    cc.check_emsg()
-    cc.seed.enable(name)
-    if cc.emsg != '':
+    name, fix = _find_import_name(cc)
+    if name is None:
+        return False
+    hint = cc.gen_hint('Aインポート忘れ B追加_前', U=fix)
+    cc.disable(name)
+    if cc.check_emsg('NameError'):
         return cc.record(hint, fix=fix)
     return False
 
 
-def NER2(cc: CodeCase):
+def NameErrorModule(cc: CodeCase):
     if cc.tbase is None or cc.is_operator or cc.is_indexer:
         return False
-    expected = cc.seed.expect(cc.tbase)
-    hint = f'A変数なし' if cc.is_property else 'A関数なし'
-    orig = None
-    if cc.tbase.startswith('<'):
-        hint = f'{hint} Cメソッドかも'
+    expected = cc.expect(0)
+    if cc.kind == 'module':
+        maybe = 'Cモジュールかも'
+        fix = cc.code
     else:
-        hint = f'{hint} Cモジュールかも'
-        orig = cc.base
+        maybe = 'Cメソッドかも'
+        fix = None
+    hint = f'A変数なし {maybe}' if cc.is_property else f'A関数なし {maybe}'
     hint = cc.gen_hint(hint, E=expected)
-    cc.base = None
-    cc.check_emsg()
-    if cc.emsg.startswith('NameError'):
-        if orig:
-            cc.base = orig
-            return cc.record(hint, fix=cc.gencode())
-        return cc.record(hint)
+    cc.set(0, None)
+    if cc.check_emsg('NameError'):
+        return cc.record(hint, fix=fix)
     return False
 
 
@@ -516,19 +545,15 @@ def NameErrorParam(cc: CodeCase, index=0):
         return False
     expected = cc.expect(index)
     cc.set_K(index)
-    if len(correct) > 4 and random.random() < 0.5:
+    if len(correct) > 3 and random.random() < 0.5:
         wrong = misspell(correct)
+        hint = Hint('Aタイポ', W=wrong, S=correct)
         cc.set(index, wrong)
-        cc.check_emsg()
-        cc.rollback()
-        hint = Hint('A変数なし Bタイポ', W=wrong, S=correct)
     else:
-        cc.disable(correct)
-        cc.check_emsg()
-        cc.rollback()
-        hint = Hint('A変数なし B追加_変数', E=expected)
         cc.repeat(correct)
-    if 'NameError' in cc.emsg:
+        hint = cc.get_hint('A変数なし B追加_変数', E=expected)
+        cc.disable(correct)
+    if cc.check_emsg('NameError'):
         return cc.record(hint=hint)
     return False
 
@@ -568,6 +593,34 @@ def TER(cc):
     return False
 
 
+def TypeErrorArg(cc: CodeCase, index=1):
+    if len(cc.params) < index:
+        return False
+    for _ in range(N_TRY):
+        expected = cc.expect(index)
+        wrong = cc.wrong_type(index)
+        cc.set_K(index)
+        hint = cc.gen_hint('A型ミス B修正型_', W=wrong, E=expected)
+        cc.set(index, wrong)
+        if cc.check_emsg('TypeError'):
+            return cc.record(hint=hint)
+    return False
+
+
+def ValueErrorArg(cc: CodeCase, index=1):
+    if len(cc.params) < index:  # キーワード引数は変更しない
+        return False
+    for _ in range(N_TRY):
+        expected = cc.expect(index)
+        wrong = cc.wrong_value()
+        cc.set_K(index)
+        hint = cc.gen_hint('A値ミス B修正_', W=wrong, E=expected)
+        cc.set(index, wrong)
+        if cc.check_emsg():
+            return cc.record(hint=hint)
+    return False
+
+
 def TE1(cc: CodeCase, index=1):
     if len(cc.params) < index:
         return False
@@ -604,12 +657,11 @@ def TEI(cc):
     if cc.is_operator or cc.is_property or cc.kwarg != '':
         return False
     fix = cc.code
-    wrong = cc.seed.select_wrong()
+    wrong = cc.wrong_type(index=None)
     cc.set_K(len(cc.tparams)+1)
     hint = cc.gen_hint('A型ミス B削除_', W=wrong)
-    cc.params.append(wrong)
-    cc.check_emsg()
-    if 'arg' in cc.emsg:  # and not hint.is_type_error(cc.emsg):
+    cc.append(wrong)
+    if cc.check_emsg('arg'):
         return cc.record(hint, fix=fix)
     return False
 
@@ -712,7 +764,7 @@ def VE(cc):  # 値エラーを強制的に発生
 
 
 FAULT_SET = [
-    SE0, SE, NE, NE2, NM,
+    SE0, SE, NE, NE2,  # NM,
     TER, TE1, TE2, TE3, TE4, TEI, TED,
     KN, KT, KV, KA, VE]
 
@@ -722,13 +774,11 @@ class Generator(object):
         self.generated = []
         self.faults = faults
 
-    def generate(self, ns, specs, api_doc, n_times=1):
-        seed = Seed(ns=ns, logs=self.generated)
-        seed.load(specs)
-        testcase = Seed.parse_testcase(api_doc)
+    def generate(self, suite, n_times=1):
+        seed = Seed(suite, logs=self.generated)
         if n_times == 0:
             seed.dump()
-        for test in testcase * n_times:
+        for test in suite.cases * n_times:
             for fault in self.faults:
                 seed.fault = fault.__name__
                 cc = CodeCase(seed, test)
@@ -760,5 +810,5 @@ class Generator(object):
 if __name__ == '__main__':
     gen = Generator(faults=[NameErrorParam])
     # gen = Generator()
-    gen.generate(*testcase.DebugFaultSuite(), n_times=1)
+    gen.generate(testcase.DebugFaultSuite(), n_times=1)
     gen.dump()
