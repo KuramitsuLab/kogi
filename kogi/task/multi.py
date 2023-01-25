@@ -8,6 +8,7 @@ class MultitaskAI(ConversationAI):
 
     def response(self, input_text):
         tag, generated_text = self.generate_transform(input_text)
+        debug_print(input_text, tag, generated_text)
         self.record('@model', input_text, f'{tag}{generated_text}')
         if tag.startswith('<status>'):
             return status_message(generated_text)
