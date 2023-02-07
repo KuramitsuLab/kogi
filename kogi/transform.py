@@ -168,25 +168,42 @@ def get_kvars(text):
     return re.findall(KPAT, text)
 
 
-def make_output(text, dic):
+def make_output(text, dic, output_fmt='{}'):
     words = get_kvars(text)
     for word in words:
         if word in dic:
             new_word = dic[word].pop(0)
-            text = text.replace(word, new_word, 1)
+            text = text.replace(word, output_fmt.format(new_word), 1)
             dic[word].append(new_word)
     return text
 
 
-def model_transform(text, beam=1, transform_before=parse, transform_after=make_output):
+def model_transform(text, beam=1, transform_before=parse, transform_after=make_output, output_fmt='{}'):
     # debug_print(text)
     user_input, after_maps = transform_before(text)
     # debug_print(user_input, after_maps)
     if beam == 1:
         generated_text = model_generate(user_input, beam=1)
         if generated_text is not None:
-            generated_text = transform_after(generated_text, after_maps)
+            generated_text = transform_after(
+                generated_text, after_maps, output_fmt)
         return generated_text
     outputs = model_generate(user_input, beam=beam)
-    outputs = [transform_after(t, dict(after_maps)) for t in outputs]
+    outputs = [transform_after(t, dict(after_maps), output_fmt)
+               for t in outputs]
     return outputs
+
+
+def rmt_model_trasform(text, cache, html=False):
+    output_fmt = '{}'
+    if html:
+        output_fmt = '<b><font color="red">{}</font></b>'
+    ss = []
+    for line in text.splitlines():
+        if line in cache:
+            generated = cache[line]
+        else:
+            generated = model_transform(text, output_fmt=output_fmt)
+            cache[line] = generated
+        ss.append(generated)
+    return '\n'.join(ss)

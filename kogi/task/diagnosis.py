@@ -4,8 +4,8 @@ import re
 
 from .common import debug_print, Doc, status_message
 from .runner import model_parse, task, run_prompt
-from kogi.liberr.rulebase import extract_params, expand_eparams
-from kogi.data.diagnosis_ja import kwconv_diagnosis
+from kogi.liberr.rulebase import extract_params  # , expand_eparams
+from kogi.data.diagnosis_ja import kwconv_diagnosis, reload
 
 _CODE = re.compile(r'(`[^`]+`)')
 _SPECIAL = re.compile(r'\<([^\>]+)\>')
