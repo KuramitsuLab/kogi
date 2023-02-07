@@ -152,6 +152,10 @@ def display_rmt(input_caption='入力',
     def rmt(text):
         try:
             text2 = transform_fn(text, _CACHE, html=html)
+            if len(_CACHE) < 3:  # 接続エラーをキャッシュから消す
+                for k, v in list(_CACHE.items()):
+                    if 'HTTPConnectionPool' in v:
+                        del _CACHE[k]
             return JSON({'result': text2})
         except:
             traceback.print_exc()
