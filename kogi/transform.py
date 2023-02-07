@@ -194,7 +194,7 @@ def model_transform(text, beam=1, transform_before=parse, transform_after=make_o
     return outputs
 
 
-def rmt_model_trasform(text, cache, html=False):
+def rmt_model_transform(text, cache, html=False):
     output_fmt = '{}'
     if html:
         output_fmt = '<b><font color="red">{}</font></b>'
@@ -204,6 +204,9 @@ def rmt_model_trasform(text, cache, html=False):
             generated = cache[line]
         else:
             generated = model_transform(text, output_fmt=output_fmt)
+            if generated.startswith('<') and '>' in generated:
+                _, _, generated = generated.partition('>')
+                generated = generated.strip()
             cache[line] = generated
         ss.append(generated)
     return '\n'.join(ss)
