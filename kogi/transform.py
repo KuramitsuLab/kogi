@@ -194,10 +194,8 @@ def model_transform(text, beam=1, transform_before=parse, transform_after=make_o
     return outputs
 
 
-def rmt_model_transform(text, cache, html=False):
-    output_fmt = '{}'
-    if html:
-        output_fmt = '<b><font color="red">{}</font></b>'
+def rmt_model_transform(text, cache):
+    output_fmt = '<b><font color="red">{}</font></b>'
     ss = []
     for line in text.splitlines():
         if line in cache:

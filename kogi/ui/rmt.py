@@ -123,11 +123,11 @@ def display_rmt(input_caption='入力',
         google_colab.register_callback('notebook.rmt', rmt)
 
 
-def transform_nop(text, cache, html=True):
+def transform_nop(text, cache):
     return text
 
 
-def model_fn(text, cache, html=True):
+def model_fn(text, cache):
     if text in cache:
         return cache[text]
     generated_text = model_generate(text, beam=1)
@@ -151,7 +151,7 @@ def display_rmt(input_caption='入力',
 
     def rmt(text):
         try:
-            text2 = transform_fn(text, _CACHE, html=html)
+            text2 = transform_fn(text, _CACHE)
             if len(_CACHE) < 3:  # 接続エラーをキャッシュから消す
                 for k, v in list(_CACHE.items()):
                     if 'HTTPConnectionPool' in v:
