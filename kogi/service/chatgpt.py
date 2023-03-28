@@ -4,7 +4,7 @@ model_cache = {}
 
 
 def set_openai(api_key: str):
-    openai.api_key = f'sk_{api_key}'
+    openai.api_key = api_key
 
 
 def model_prompt(prompt, **kwargs):

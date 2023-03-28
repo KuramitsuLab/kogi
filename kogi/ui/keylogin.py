@@ -134,14 +134,15 @@ def check_level(ukeys):
 
 
 ULEVEL = [
-    '今日は一緒にがんばりましょう！',
-    'どんどん上達しているようね！',
+    '今日も一緒にがんばりましょう！',
     '今日はとってもプログラミング日和よね！',
+    '最近、どんどん上達している感じだね！',
     'なんか、プログラミングは得意そうだね！',
-    'お、上級者キター！！コギーをいじめないでね！',
+    'お、上級者キター！！いじめないでね！',
 ]
 
 ZHTBL = str.maketrans('０１２３４５６７８９', '0123456789')
+STUDENT_CODE = 'm8YpbzR6ovEjyzJ8oXnpT3BlbkFJYwKQCc1DmrTOj4Adj'
 
 
 def ulogin(uname, code, ucode, ukeys):
@@ -150,14 +151,15 @@ def ulogin(uname, code, ucode, ukeys):
         uname = uname.translate(ZHTBL)
         is_student = uname.startswith("230") or uname.startswith(
             "240") or uname.startswith("220")
-        # debug_print(uname, code, ucode, ukeys)
-        if len(uname) > 0:
-            kogi_set(uname=uname)
         average_time, ulevel = check_level(ukeys)
-        kogi_set(uname=uname, ulevel=ulevel)
+        kogi_set(uname=uname, ulevel=ulevel, approved=True)
         record_log(type='key', uname=uname, code=code,
-                   ucode=ucode, average_time=average_time, ulevel=ulevel, ukeys=ukeys)
-        return JSON({'text': ULEVEL[ulevel-1]})
+                   ucode=ucode, average_time=average_time,
+                   ulevel=ulevel, ukeys=ukeys)
+        msg = f'{ULEVEL[ulevel-1]}'
+        if is_student:
+            kogi_set(openai_key=f'sk-{STUDENT_CODE}Ag8')
+        return JSON({'text': msg})
     except:
         traceback.print_exc()
         return JSON({'text': 'よろしく！'})
