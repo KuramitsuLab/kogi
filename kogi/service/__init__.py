@@ -2,8 +2,7 @@ from .globals import kogi_defined, kogi_get, globals_update
 from .s3logging import kogi_print, print_nop, debug_print, record_log
 from .textra import load_mt, translate
 from .slack import load_slack, slack_send
-# from .huggingface import load_model, model_generate
-# from .__async__ import is_loading, async_download
+from .chatgpt import set_openai, model_prompt
 from .flaskapi import load_model, model_generate, check_awake, start_server
 
 

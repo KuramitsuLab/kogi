@@ -8,7 +8,7 @@ import sys
 from IPython import get_ipython
 
 from .service import (
-    model_prompt, translate,
+    translate,
     record_log, debug_print
 )
 

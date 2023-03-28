@@ -60,7 +60,7 @@ span.psw {
   <h4>こんにちは！ まず、タイピング力見せてね</h4>
   <div class="container">
     <label for="uname">お名前</label>
-    <input type="text" placeholder="ニックネームでどうぞ" id="uname" name="uname" required>
+    <input type="text" placeholder="学籍番号とニックネームでどうぞ" id="uname" name="uname" required>
     <label for="psw"><code id="code">print("A", "B", "C")</code></label>
     <input type="text" placeholder="上のコードを入力してみてください。" id="ucode" name="ucode" required>
   </div>
@@ -136,20 +136,25 @@ def check_level(ukeys):
 ULEVEL = [
     '今日は一緒にがんばりましょう！',
     'どんどん上達しているようね！',
-    '今日はよいプログラミング日和よね！',
-    'プログラミングは得意そうだね！',
+    '今日はとってもプログラミング日和よね！',
+    'なんか、プログラミングは得意そうだね！',
     'お、上級者キター！！コギーをいじめないでね！',
 ]
+
+ZHTBL = str.maketrans('０１２３４５６７８９', '0123456789')
 
 
 def ulogin(uname, code, ucode, ukeys):
     try:
         kogi_set(approved=True)
+        uname = uname.translate(ZHTBL)
+        is_student = uname.startswith("230") or uname.startswith(
+            "240") or uname.startswith("220")
         # debug_print(uname, code, ucode, ukeys)
         if len(uname) > 0:
             kogi_set(uname=uname)
         average_time, ulevel = check_level(ukeys)
-        kogi_set(ulevel=ulevel)
+        kogi_set(uname=uname, ulevel=ulevel)
         record_log(type='key', uname=uname, code=code,
                    ucode=ucode, average_time=average_time, ulevel=ulevel, ukeys=ukeys)
         return JSON({'text': ULEVEL[ulevel-1]})
