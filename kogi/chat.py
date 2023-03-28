@@ -140,8 +140,8 @@ def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'
 
         google_colab.register_callback('notebook.ask', ask)
         google_colab.register_callback('notebook.like', like)
-        if start != '':
-            ask(start)
+        # if start != '':
+        #     ask(start)
     return target
 
 
@@ -197,7 +197,7 @@ def catch_and_start_kogi(exc_info=None, code: str = None, context: dict = None, 
         call_and_start_kogi([msg], code)
         return
 
-    record_log(type='error2', **record)
+    record_log(type='error', **record)
     messages = error_message(record)
     if context:
         record.update(context)
