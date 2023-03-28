@@ -40,7 +40,7 @@ class ChatAI(object):
         self.records.append((task, input_text, output_text))
         return rec_id
 
-    def dialog(self, prompt):
+    def prompt(self, prompt):
         if '@error_hint' in prompt:
             return self.error_hint(self.slots['emsg'], self.slots['eline'])
         if '@fix_code' in prompt:
@@ -110,7 +110,8 @@ def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'
         def ask(user_text):
             nonlocal bot
             try:
-                user_text = user_text.strip()
+                if isinstance(user_text, str):
+                    user_text = user_text.strip()
                 debug_print(user_text)
                 display_user(user_text)
                 doc, rec_id = bot.prompt(user_text)
