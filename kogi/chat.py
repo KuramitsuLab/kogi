@@ -13,10 +13,6 @@ from .service import (
 )
 
 
-def model_prompt(prompt):
-    return 'ほげ', 3
-
-
 class ChatAI(object):
     slots: dict
     chats: dict
