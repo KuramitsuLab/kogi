@@ -17,6 +17,8 @@ def kogi_set(**kwargs):
         load_slack(kwargs['slack_key'])
     if 'textra_key' in kwargs:
         load_mt(kwargs['textra_key'])
+    if 'openai_key' in kwargs:
+        set_openai(kwargs['openai_key'])
 
 
 def isEnglishDemo():

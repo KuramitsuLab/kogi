@@ -221,13 +221,6 @@ class Doc(object):
                     script += s
         return script
 
-    # def get_message2(self, tag):
-    #     m = {}
-    #     m['text'] = str(self)
-    #     m['term'] = self.term()
-    #     m['html'] = self._repr_html_()
-    #     return m, tag
-
     @classmethod
     def md(cls, s, style=None):
         doc = Doc(style=style)

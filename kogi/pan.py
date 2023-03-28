@@ -5,7 +5,7 @@ import os
 import pandas as pd
 from IPython import get_ipython
 from kogi.service import debug_print, model_generate, kogi_set
-from .conversation import ConversationAI, set_chatbot
+from .OLDconversation import ConversationAI, set_chatbot
 try:
     import pegtree as pg
 except ModuleNotFoundError:

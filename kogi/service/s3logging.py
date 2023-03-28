@@ -60,7 +60,7 @@ def record_log(lazy=False, **kargs):
     SEQ += 1
     _LOG_BUFFERS.append(logdata)
     send_log(not lazy)
-    return logdata
+    return SEQ-1
 
 
 UID = 'unknown'

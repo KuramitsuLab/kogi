@@ -5,7 +5,7 @@ from functools import wraps
 
 # from kogi.logger import sync_lazy_loggger
 
-from .conversation import catch_and_start_kogi, call_and_start_kogi
+from .chat import catch_and_start_kogi, call_and_start_kogi
 from IPython.core.interactiveshell import InteractiveShell, ExecutionResult
 
 

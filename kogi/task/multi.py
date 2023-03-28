@@ -1,5 +1,5 @@
 from kogi.service import *
-from ..conversation import ConversationAI, set_chatbot
+from ..OLDconversation import ConversationAI, set_chatbot
 from .common import status_message
 from .all import run_prompt
 
