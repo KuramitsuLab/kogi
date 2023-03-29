@@ -5,7 +5,7 @@ from functools import wraps
 
 # from kogi.logger import sync_lazy_loggger
 
-from .chat import catch_and_start_kogi, call_and_start_kogi
+from .chat import catch_and_start_kogi, call_and_start_kogi, record_log
 from IPython.core.interactiveshell import InteractiveShell, ExecutionResult
 
 
@@ -66,6 +66,7 @@ def kogi_run_cell(ipy, raw_cell, kwargs):
                     return result
         if result is None:
             result = RUN_CELL(ipy, raw_cell, kwargs)
+            record_log(type='run_cell', code=raw_cell)
         return result
 
 
@@ -85,8 +86,6 @@ def change_run_cell(func):
 def change_showtraceback(func):
     @wraps(func)
     def showtraceback(*args, **kwargs):
-        # print('** new version ***')
-        # value = func(*args, **kwargs)
         try:
             ipyshell = args[0]
             code = ipyshell.user_global_ns['In'][-1]

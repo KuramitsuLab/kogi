@@ -73,12 +73,20 @@ class ChatAI(object):
         return response, rec_id
 
     def fix_code(self, emsg, code):
+        ss=[]
+        for line in code.splitlines():
+            if '"' in line or "'" in line:
+                ss.append(line)
+            else:
+                line, _, _ = line('#')
+                ss.append(line)
+        code='\n'.join(ss)
         if len(code) > 512:
-            return '@kogi:コードが長すぎるにゃ', 0
+            return '@kogi:直すべきコードが長すぎにゃ', 0
         prompt = f'`{emsg}`というエラーが出た。`{code}`を修正してください。'
+        response, tokens = model_prompt(prompt)
         if response == '':
             return self.no_response()
-        response, tokens = model_prompt(prompt)
         rec_id = record_log(type='prompt_fix_code',
                             prompt=prompt, response=response, tokens=tokens,
                             emsg=emsg, eline=code)
