@@ -36,16 +36,22 @@ html[theme=dark] {
 }
 
 button {
-    font-size: 10px;
-    background: var(--button-background);
-    color: var(--button-color);
-    margin: 16px 4px;
-    padding: 8px 8px;
+	display: block;
+	text-align: center;
+	/* vertical-align: middle; */
+	text-decoration: none;
+	/* width: 120px; */
+	margin: auto;
+	padding: 1rem 4rem;
+	font-weight: bold;
+	border: 2px solid var(--button-background);
+	color: var(--button-background);
+	transition: 0.5s;
 }
 
-/* Add a hover effect for buttons */
 button:hover {
-    opacity: 0.5;
+	color: #fff;
+	background: var(--button-background);
 }
 
 .sb-box {
