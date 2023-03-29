@@ -1,4 +1,5 @@
 _GLOBALS = {
+    'height': 360,
     'textra': 'cb25461ac40e7a2dc0b2bc05d381995a',
     # 'model_key': 'rhOcswxkXzMbhlkKQJfytbfxAPVsblhRHX',
 }
