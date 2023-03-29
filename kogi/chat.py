@@ -48,9 +48,14 @@ class ChatAI(object):
             return self.fix_code(self.slots['emsg'], self.slots['code'])
         return self.dialog(prompt)
 
+    def no_response(self):
+        return '@robot:ChatGPTが反応しないんだけど..'
+
     def dialog(self, input_text):
         prompt = input_text
         response, tokens = model_prompt(prompt)
+        if response == '':
+            return self.no_response()
         rec_id = record_log(type='prompt_dialog',
                             prompt=prompt, response=response, tokens=tokens)
         self.chats[rec_id] = (prompt, response, ('dialog', input_text))
@@ -59,6 +64,8 @@ class ChatAI(object):
     def error_hint(self, emsg, eline):
         prompt = f'コード`{eline}`で、`{emsg}`というエラーが出た。どうしたら良いの？'
         response, tokens = model_prompt(prompt)
+        if response == '':
+            return self.no_response()
         rec_id = record_log(type='prompt_error_hint',
                             prompt=prompt, response=response, tokens=tokens,
                             emsg=emsg, eline=eline)
@@ -69,6 +76,8 @@ class ChatAI(object):
         if len(code) > 512:
             return '@kogi:コードが長すぎるにゃ', 0
         prompt = f'`{emsg}`というエラーが出た。`{code}`を修正してください。'
+        if response == '':
+            return self.no_response()
         response, tokens = model_prompt(prompt)
         rec_id = record_log(type='prompt_fix_code',
                             prompt=prompt, response=response, tokens=tokens,
@@ -156,8 +165,10 @@ def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'
 def call_and_start_kogi(actions, code: str = None, context: dict = None):
     for user_text in actions:
         _DefaultChatbot.update(context)
-        # doc = _DefaultChatbot.ask(user_text)
-        start_dialog(_DefaultChatbot, user_text)
+        doc, rec_id = _DefaultChatbot.dialog(user_text)
+        doc = Doc.md(doc)
+        doc.add_likeit(rec_id)
+        start_dialog(_DefaultChatbot, doc)
         return
 
 
@@ -183,14 +194,14 @@ def error_message(record):
     return doc
 
 
-_HIRA_PAT = re.compile('[あ-を]')
+# _HIRA_PAT = re.compile('[あ-を]')
 
 
-def is_kogi_call(record):
-    if record.get('etype') == 'NameError':
-        eparams = record['_eparams']
-        return re.search(_HIRA_PAT, eparams[0])
-    return False
+# def is_kogi_call(record):
+#     if record.get('etype') == 'NameError':
+#         eparams = record['_eparams']
+#         return re.search(_HIRA_PAT, eparams[0])
+#     return False
 
 
 def catch_and_start_kogi(exc_info=None, code: str = None, context: dict = None, exception=None, enable_dialog=True):
@@ -198,11 +209,11 @@ def catch_and_start_kogi(exc_info=None, code: str = None, context: dict = None, 
         exc_info = sys.exc_info()
     record = kogi_exc(code=code, exc_info=exc_info,
                       caught_ex=exception, translate=translate)
-    if is_kogi_call(record):
-        msg = record['_eparams'][0][1:-1]
-        debug_print(msg)
-        call_and_start_kogi([msg], code)
-        return
+    # if is_kogi_call(record):
+    #     msg = record['_eparams'][0][1:-1]
+    #     debug_print(msg)
+    #     call_and_start_kogi([msg], code)
+    #     return
 
     record_log(type='error', **record)
     messages = error_message(record)
