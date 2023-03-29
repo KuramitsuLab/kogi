@@ -3,9 +3,11 @@ html {
     --box-background: #F0F8FF;
     --talk-background: #FAF0E6;
     --talk-color: #333;
-    --code-background: white;
+
+    --code-background: #e79849ef;
     --code-color: #111;
-    --button-background: darkblue;
+    
+    --button-background: rgb(215, 109, 38);
     --button-color: #eee;
 }
 
@@ -167,13 +169,13 @@ button:hover {
     border-color: transparent transparent transparent var(--talk-background);
 }
 
-.box {
+.box0 {
     background: var(--box-background);
     overflow-y: scroll;
     height: 150px;
 }
 
-.box2 {
+.box {
     background: var(--box-background);
 }
 

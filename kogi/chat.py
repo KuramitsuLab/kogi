@@ -53,7 +53,7 @@ class ChatAI(object):
         response, tokens = model_prompt(prompt)
         rec_id = record_log(type='prompt_dialog',
                             prompt=prompt, response=response, tokens=tokens)
-        self.chats[rec_id] = (prompt, response)
+        self.chats[rec_id] = (prompt, response, ('dialog', input_text))
         return response, rec_id
 
     def error_hint(self, emsg, eline):
@@ -62,7 +62,7 @@ class ChatAI(object):
         rec_id = record_log(type='prompt_error_hint',
                             prompt=prompt, response=response, tokens=tokens,
                             emsg=emsg, eline=eline)
-        self.chats[rec_id] = (prompt, response, (emsg, eline))
+        self.chats[rec_id] = (prompt, response, ('error_hint', emsg, eline))
         return response, rec_id
 
     def fix_code(self, emsg, code):
@@ -73,7 +73,7 @@ class ChatAI(object):
         rec_id = record_log(type='prompt_fix_code',
                             prompt=prompt, response=response, tokens=tokens,
                             emsg=emsg, eline=code)
-        self.chats[rec_id] = (prompt, response, (emsg, code))
+        self.chats[rec_id] = (prompt, response, ('fix_code', emsg, code))
         return response, rec_id
 
     def likeit(self, rec_id, score):

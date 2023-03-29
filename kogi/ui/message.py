@@ -7,13 +7,12 @@ from ._google import google_colab
 
 _ICON = {
     '@kogi': ('コギー', 'kogi-fs8.png'),
-    '@error': ('コギー', 'kogi_doya-fs8.png'),
-    '@gpt': ('コギー', 'kogi_doya-fs8.png'),
+    '@kogi_plus': ('コギー', 'kogi_doya-fs8.png'),
+    '@kogi_minus': ('コギー', 'kogi_error-fs8.png'),
     '@robot': ('コギー', 'kogi_gaan-fs8.png'),
     '@ta': ('ももパン', 'ta-fs8.png'),
     '@you': ('あなた', 'girl-fs8.png'),
 }
-
 
 def get_icon(tag):
     return _ICON.get(tag, _ICON['@kogi'])
