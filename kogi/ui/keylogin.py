@@ -57,15 +57,16 @@ span.psw {
 
 </style>
 <form id="base">
-  <h4>こんにちは！ まず、タイピング力見せてね</h4>
+  <b>こんにちは！ コギーくんはChatGPTと仲良くなり、学習状況にあわせて、代わりに質問してくれます。</b>
   <div class="container">
-    <label for="uname">お名前</label>
+    <label for="uname">学籍番号とニックネーム</label>
     <input type="text" placeholder="学籍番号とニックネームでどうぞ" id="uname" name="uname" required>
     <label for="psw"><code id="code">print("A", "B", "C")</code></label>
-    <input type="text" placeholder="上のコードを入力してみてください。" id="ucode" name="ucode" required>
-  </div>
+    <input type="text" placeholder="タイピング力を見るため、上のコードを入力してください。" id="ucode" name="ucode" required>
+    <div>コードの意味が同じなら、空白は省略して構いません。</div>
+    </div>
   <div class="container" style="background-color:#f1f1f1">
-    <button type="button" id="ulogin" class="login">利用規約に同意する</button>
+    <button type="button" id="ulogin" class="login">利用規約に同意して、コギーくんを呼ぶ</button>
     <span class="psw"> <a href="https://ja.wikipedia.org/wiki/政府標準利用規約" target="_blank">利用規約とは</a></span>
   </div>
 </form>
@@ -79,13 +80,14 @@ span.psw {
         'print(a/gcd(a,b), b/gcd(a,b))',
         'print(file=w, end="")',
         'print(1+2, 2*3, 3//4)',
-        'print((1,2,3), [1,2,3])',
+        'print([1,2,3], (1,2,3))',
         'print({"A": 1, "B": 2})',
     ];
     const index = Math.floor(Math.random() * samples.length);
     document.getElementById('code').innerText=samples[index];
     var buffers = [];
     var before = new Date().getTime();
+    var finished = false;
     document.getElementById('ucode').addEventListener('keydown', (e) => {
       var now = new Date().getTime();
       if(e.key === ' ') {
@@ -94,8 +96,11 @@ span.psw {
       else {
         buffers.push(`${now - before} ${e.key}`);
       }
+      if(e.key === ')') {
+        finished = true;
+      }
       before = now;
-      if (buffers.length > samples[index].length) {
+      if (finished && buffers.length > samples[index].length) {
         document.getElementById('ulogin').disabled=false;
       }
     });
@@ -122,11 +127,11 @@ def check_level(ukeys):
     times = [int(t) for t in keys[0::2]]
     keys = keys[1::2]
     average_time = (sum(times)-max(times)) / (len(times)-1)
-    if average_time < 200:
-        return average_time, 5
     if average_time < 300:
-        return average_time, 4
+        return average_time, 5
     if average_time < 400:
+        return average_time, 4
+    if average_time < 450:
         return average_time, 3
     if average_time < 500:
         return average_time, 2
@@ -137,8 +142,8 @@ ULEVEL = [
     '今日も一緒にがんばりましょう！',
     '今日はとってもプログラミング日和よね！',
     '最近、どんどん上達している感じだね！',
-    'なんか、プログラミングは得意そうだね！',
-    'お、上級者キター！！いじめないでね！',
+    'なんか、プログラミングは十分、得意そうだね！',
+    'お、上級者来たね！',
 ]
 
 ZHTBL = str.maketrans('０１２３４５６７８９', '0123456789')
@@ -150,15 +155,17 @@ def ulogin(uname, code, ucode, ukeys):
         kogi_set(approved=True)
         uname = uname.translate(ZHTBL)
         is_student = uname.startswith("230") or uname.startswith(
-            "240") or uname.startswith("220")
+            "240") or uname.startswith("220") or uname.startswith("210")
         average_time, ulevel = check_level(ukeys)
         kogi_set(uname=uname, ulevel=ulevel, approved=True)
         record_log(type='key', uname=uname, code=code,
                    ucode=ucode, average_time=average_time,
                    ulevel=ulevel, ukeys=ukeys)
-        msg = f'{ULEVEL[ulevel-1]}'
         if is_student:
-            kogi_set(openai_key=f'sk-{STUDENT_CODE}Ag8')
+          msg = f'コギーくんを呼んだわ！{ULEVEL[ulevel-1]}'
+          kogi_set(openai_key=f'sk-{STUDENT_CODE}Ag8')
+        else:
+          msg = f'学籍番号が変なので、コギーくんは逃げてしまったわ。'
         return JSON({'text': msg})
     except:
         traceback.print_exc()
