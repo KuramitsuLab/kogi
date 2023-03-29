@@ -90,13 +90,13 @@ _TEXTAREA = '''\
 <div style="text-align: right">
 <textarea id="inputXYZ" placeholder="@placeholder@"></textarea>
 <script>
-let timeout = 5*1000;
+let timeout = 3*60*1000;
 var tm = setTimeout(()=>{document.getElementById("inputXYZ").remove();}, timeout);
 document.getElementById("inputXYZ").addEventListener('keydown', (e) => {
     if (e.keyCode == 13) {
         const pane = document.getElementById("inputXYZ");
         clearTimeout(tm);
-        tm = setTimeout(()=>{pane.remove();}, timeout);
+        tm = setTimeout(()=>{pane.remove();}, timeout*2);
         google.colab.kernel.invokeFunction('notebook.ask', [pane.value], {});
         pane.value = '';
     }

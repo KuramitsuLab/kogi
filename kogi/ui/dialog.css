@@ -41,11 +41,12 @@ button {
 	/* vertical-align: middle; */
 	text-decoration: none;
 	/* width: 120px; */
-	margin: auto;
-	padding: 1rem 4rem;
+	/* margin: auto;
+	padding: 1rem 4rem; */
 	font-weight: bold;
 	border: 2px solid var(--button-background);
 	color: var(--button-background);
+	background: var(--talk-background);
 	transition: 0.5s;
 }
 
