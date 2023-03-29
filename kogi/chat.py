@@ -178,7 +178,6 @@ def error_message(record):
         doc.append(record['_doc'])
     # doc.add_button('@error_hint', 'どうしたらいいの？')
     # doc.add_button('@fix_code', '直してみて')
-
     # doc.add_button('@xcall', '先生を呼んで')
     return doc
 
