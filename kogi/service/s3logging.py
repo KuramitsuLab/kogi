@@ -58,8 +58,9 @@ def record_log(lazy=False, **kargs):
         logdata['type_orig'] = logdata['type']
         logdata['type'] = 'debug'
     SEQ += 1
-    _LOG_BUFFERS.append(logdata)
-    send_log(not lazy)
+    if kogi_get('approved', False):
+        _LOG_BUFFERS.append(logdata)
+        send_log(not lazy)
     return SEQ-1
 
 
@@ -92,55 +93,3 @@ def send_log(right_now=True):
             debug_print(r)
 
 
-# def logging_json(**kw):
-#     global SEQ, _LOG_BUFFERS, epoch
-#     now = datetime.now()
-#     date = now.isoformat(timespec='seconds')
-#     logdata = dict(seq=SEQ, date=date, **kw)
-#     _LOG_BUFFERS.append(logdata)
-#     SEQ += 1
-#     send_log(right_now=False)
-#     return logdata
-
-
-# def logging_asjson(log_type, right_now=False, **kwargs):
-#     global SEQ, _LOG_BUFFERS, epoch
-#     now = datetime.now()
-#     date = now.isoformat(timespec='seconds')
-#     logdata = dict(log_type=log_type, seq=SEQ, date=date)
-#     logdata.update(kwargs)
-#     _LOG_BUFFERS.append(logdata)
-#     SEQ += 1
-#     send_log(right_now=right_now)
-#     return logdata
-
-
-# LAZY_LOGGER = []
-
-
-# def add_lazy_logger(func):
-#     LAZY_LOGGER.append(func)
-
-
-# def sync_lazy_loggger():
-#     for logger in LAZY_LOGGER:
-#         try:
-#             logger()
-#         except:
-#             traceback.print_exc()
-
-
-# def _handler(signum, frame):
-#     sync_lazy_loggger()
-#     version = None
-#     try:
-#         import google.colab as colab
-#         version = f'colab {colab.__version__}'
-#     except ModuleNotFoundError:
-#         pass
-#     if version is None:
-#         version = 'unknown'
-#     logging_asjson('terminal', right_now=True, version=version)
-
-
-# signal.signal(signal.SIGTERM, _handler)
