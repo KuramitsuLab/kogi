@@ -91,9 +91,13 @@ _TEXTAREA = '''\
 <div style="text-align: right">
 <textarea id="inputXYZ" placeholder="@placeholder@"></textarea>
 <script>
+let timeout = 5*1000;
+var tm = setTimeout(()=>{document.getElementById("inputXYZ").remove();}, timeout);
 document.getElementById("inputXYZ").addEventListener('keydown', (e) => {
     if (e.keyCode == 13) {
         const pane = document.getElementById("inputXYZ");
+        clearTimeout(tm);
+        tm = setTimeout(()=>{pane.remove();}, timeout);
         google.colab.kernel.invokeFunction('notebook.ask', [pane.value], {});
         pane.value = '';
     }
@@ -119,7 +123,8 @@ def display_dialog(doc='', height=None, placeholder=None):
     else:
         html, script = messagefy(doc)
     if height:
-        html = _DIALOG2.format(height, html)
+        html = _DIALOG.format(html)
+        ##html = _DIALOG2.format(height, html)
     else:
         html = _DIALOG.format(html)
     if placeholder:
