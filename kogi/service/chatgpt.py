@@ -31,5 +31,5 @@ def model_prompt(prompt, **kwargs):
         res = response.choices[0]["message"]["content"].strip()
         model_cache[prompt] = res
         return res, used_tokens
-    except openai.openai.error.AuthenticationError as e:
+    except openai.error.AuthenticationError as e:
         return '', 0
