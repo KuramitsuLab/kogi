@@ -78,7 +78,7 @@ class ChatAI(object):
             if '"' in line or "'" in line:
                 ss.append(line)
             else:
-                line, _, _ = line('#')
+                line, _, _ = line.partition('#')
                 ss.append(line)
         code='\n'.join(ss)
         if len(code) > 512:
