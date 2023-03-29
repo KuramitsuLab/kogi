@@ -6,9 +6,11 @@ from IPython.display import display, HTML
 from ._google import google_colab
 
 _ICON = {
-    '@robot': ('システム', 'robot-fs8.png'),
-    '@ta': ('ももパン', 'ta-fs8.png'),
     '@kogi': ('コギー', 'kogi-fs8.png'),
+    '@error': ('コギー', 'kogi_doya-fs8.png'),
+    '@gpt': ('コギー', 'kogi_doya-fs8.png'),
+    '@robot': ('コギー', 'kogi_gaan-fs8.png'),
+    '@ta': ('ももパン', 'ta-fs8.png'),
     '@you': ('あなた', 'girl-fs8.png'),
 }
 
@@ -144,13 +146,13 @@ if(target !== undefined) {{
 
 def append_message(doc, target, mention=None):
     html, script = messagefy(doc, mention=mention)
-    if google_colab:
-        with google_colab.redirect_to_element(target):
-            display(HTML(replace_dialog_id(html)))
-    else:
-        html = html.replace('\\', '\\\\')
-        html = html.replace('`', '\\`')
-        display(HTML(replace_dialog_id(APPEND_JS).format(html=html)))
+    # if google_colab:
+    #     with google_colab.redirect_to_element(target):
+    #         display(HTML(replace_dialog_id(html)))
+    # else:
+    html = html.replace('\\', '\\\\')
+    html = html.replace('`', '\\`')
+    display(HTML(replace_dialog_id(APPEND_JS).format(html=html)))
     exec_js(replace_dialog_id(script))
     return target
 
