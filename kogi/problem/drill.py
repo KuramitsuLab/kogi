@@ -1,4 +1,5 @@
 import builtins
+from ..service import record_log
 from .timeout import exec_with_timeout
 from .judge import render_result, render_footer
 
@@ -90,12 +91,14 @@ def judge_cpc(ipy, code, data, context):
         ac += 1 if outputData == resultData else 0
         render_result(title, inputData, resultData, outputData)
     render_footer(data)
+    return ac
 
 
 def kogi_judge(ipy, code, data, judge_fn, catch_and_start_kogi):
     try:
         context = {}
-        judge_fn(ipy, code, data, context)
+        ac = judge_fn(ipy, code, data, context)
+        record_log(type='atcoder', problem_id=data.get('problem_id'), ac=ac, code=code)
     except SyntaxError as e:
         catch_and_start_kogi(code=code, context=context, exception=e)
     except:
