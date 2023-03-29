@@ -8,7 +8,7 @@ import sys
 from IPython import get_ipython
 
 from .service import (
-    translate, model_prompt,
+    translate, model_prompt, kogi_get
     record_log, debug_print
 )
 
@@ -38,7 +38,7 @@ class ChatAI(object):
 
     def prompt(self, prompt):
         # 将来は分類モデルに置き換える
-        if 'どうしたらいいの' in prompt:
+        if 'どうしたら' in prompt:
             if 'emsg' not in self.slots:
                 return '@kogi:天は人の上に人を造らず人の下に人を造らず.'
             return self.error_hint(self.slots['emsg'], self.slots['eline'])
@@ -57,7 +57,7 @@ class ChatAI(object):
         return response, rec_id
 
     def error_hint(self, emsg, eline):
-        prompt = f'コード`{eline}`で、`{emsg}`というエラーが出た。どう解決したら良いの？'
+        prompt = f'コード`{eline}`で、`{emsg}`というエラーが出た。どうしたら良いの？'
         response, tokens = model_prompt(prompt)
         rec_id = record_log(type='prompt_error_hint',
                             prompt=prompt, response=response, tokens=tokens,
@@ -92,6 +92,7 @@ def set_chatbot(chatbot):
 
 
 def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'):
+    height = kogi_get('height', height)
     target = display_dialog(start, height, placeholder)
 
     def display_user(doc):
