@@ -57,16 +57,17 @@ span.psw {
 
 </style>
 <form id="base">
-  <b>こんにちは！ コギーくんはChatGPTと仲良くなり、学習状況にあわせて、代わりに質問してくれます。</b>
+  <b>こんにちは！ コギーくんは、皆さんの学習状況にあわせてお手伝いします。</b>
   <div class="container">
-    <label for="uname">学籍番号とニックネーム</label>
-    <input type="text" placeholder="学籍番号とニックネームでどうぞ" id="uname" name="uname" required>
-    <label for="psw"><code id="code">print("A", "B", "C")</code></label>
-    <input type="text" placeholder="タイピング力を見るため、上のコードを入力してください。" id="ucode" name="ucode" required>
-    <div>コードの意味が同じなら、空白は省略して構いません。</div>
+    <label for="uname">学籍番号(正しくないとChatGPTは使用できません)</label>
+    <input type="text" placeholder="学籍番号" id="uname" name="uname" required>
+    <label for="psw">タイピング力も見せてね</label>
+    <div><code id="code">print("A", "B", "C")</code><div>
+    <input type="text" placeholder="上のコードを入力してください。" id="ucode" name="ucode" required>
+    <div style="font-size:8pt">コードの意味が同じなら、空白は省略して構いません。</div>
     </div>
   <div class="container" style="background-color:#f1f1f1">
-    <button type="button" id="ulogin" class="login">利用規約に同意して、コギーくんを呼ぶ</button>
+    <button type="button" id="ulogin" class="login">利用規約に同意する</button>
     <span class="psw"> <a href="https://ja.wikipedia.org/wiki/政府標準利用規約" target="_blank">利用規約とは</a></span>
   </div>
 </form>
