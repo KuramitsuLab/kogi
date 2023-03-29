@@ -37,9 +37,14 @@ class ChatAI(object):
         return rec_id
 
     def prompt(self, prompt):
-        if '@error_hint' in prompt:
+        # 将来は分類モデルに置き換える
+        if 'どうしたらいいの' in prompt:
+            if 'emsg' not in self.slots:
+                return '@kogi:天は人の上に人を造らず人の下に人を造らず.'
             return self.error_hint(self.slots['emsg'], self.slots['eline'])
-        if '@fix_code' in prompt:
+        if '直して' in prompt or 'たすけて' in prompt or '助けて' in prompt:
+            if 'emsg' not in self.slots:
+                return '@kogi:何を？？'
             return self.fix_code(self.slots['emsg'], self.slots['code'])
         return self.dialog(prompt)
 
@@ -52,7 +57,7 @@ class ChatAI(object):
         return response, rec_id
 
     def error_hint(self, emsg, eline):
-        prompt = f'コード`{eline}`で、`{emsg}`というエラーが出た。どうしたら良いの？'
+        prompt = f'コード`{eline}`で、`{emsg}`というエラーが出た。どう解決したら良いの？'
         response, tokens = model_prompt(prompt)
         rec_id = record_log(type='prompt_error_hint',
                             prompt=prompt, response=response, tokens=tokens,
@@ -61,6 +66,8 @@ class ChatAI(object):
         return response, rec_id
 
     def fix_code(self, emsg, code):
+        if len(code) > 512:
+            return '@kogi:コードが長すぎるにゃ', 0
         prompt = f'`{emsg}`というエラーが出た。`{code}`を修正してください。'
         response, tokens = model_prompt(prompt)
         rec_id = record_log(type='prompt_fix_code',
@@ -169,8 +176,8 @@ def error_message(record):
             doc.append(stack['_doc'])
     else:
         doc.append(record['_doc'])
-    doc.add_button('@error_hint', 'どうしたらいいの？')
-    doc.add_button('@fix_code', '直してみて')
+    # doc.add_button('@error_hint', 'どうしたらいいの？')
+    # doc.add_button('@fix_code', '直してみて')
 
     # doc.add_button('@xcall', '先生を呼んで')
     return doc
