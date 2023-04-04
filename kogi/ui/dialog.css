@@ -42,15 +42,17 @@ button { /* いいねボタン*/
 	/* margin: auto;
 	padding: 1rem 4rem; */
 	/* font-weight: bold; */
-	color: var(--button-color);
+	color:  #111;
 	background: var(--button-color);
+    border: 2px solid var(--talk-background);
     border-radius: 100vh;
 	transition: 0.5s;
 }
 
 button:hover {
-	color: #fff;
+	color: #111;
 	border: 2px solid var(--button-color);
+    border-radius: 100vh;
 	background: var(--talk-background);
 }
 
