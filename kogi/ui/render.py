@@ -178,18 +178,28 @@ class Doc(object):
         self.terms.append('\n')
         self.htmls.append('<br>')
 
-    def add_likeit(self, recid, frmid=None, copy=None, like='いいね', dislike='残念'):
+    # def add_likeit(self, recid, frmid=None, copy=None, like='👍', dislike='👎'):
+    #     frmid = frameid(frmid)
+    #     if copy:
+    #         textarea = f'<textarea id="t{frmid}" style="display: none">{{}}</textarea>'
+    #         self.htmls.append(Doc(f'</>{copy}', style=textarea))
+    #         button = f'<button id="b{frmid}" class="likeit" onclick="copy({frmid});like({recid},1)">{{}}</button>'
+    #         self.htmls.append(Doc(f'コピー({like})', style=button))
+    #     else:
+    #         button = f'<button class="likeit" onclick="like({recid},1)">{{}}</button>'
+    #         self.htmls.append(Doc(like, style=button))
+    #     button = f'<button class="likeit" onclick="like({recid},0)">{{}}</button>'
+    #     self.htmls.append(Doc(dislike, style=button))
+
+    def add_likeit(self, recid, frmid=None, copy=None, like='👍', dislike='👎'):
         frmid = frameid(frmid)
-        if copy:
-            textarea = f'<textarea id="t{frmid}" style="display: none">{{}}</textarea>'
-            self.htmls.append(Doc(f'</>{copy}', style=textarea))
-            button = f'<button id="b{frmid}" class="likeit" onclick="copy({frmid});like({recid},1)">{{}}</button>'
-            self.htmls.append(Doc(f'コピー({like})', style=button))
-        else:
-            button = f'<button class="likeit" onclick="like({recid},1)">{{}}</button>'
-            self.htmls.append(Doc(like, style=button))
-        button = f'<button class="likeit" onclick="like({recid},0)">{{}}</button>'
+        button = f'''\
+<span id="b{frmid}">
+<button class="likeit" onclick="like({recid},1);document.getElementById("b{frmid}").remove();">{like}</button>
+<button class="likeit" onclick="like({recid},0);document.getElementById("b{frmid}").remove();">{{}}</button>
+</span>'''
         self.htmls.append(Doc(dislike, style=button))
+
 
     def add_button(self, cmd, message, frmid=None):
         frmid = frameid(frmid)
