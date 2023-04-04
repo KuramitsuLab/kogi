@@ -35,7 +35,7 @@ html[theme=dark] {
     color: var(--code-code);
 }
 
-button {
+button { /* いいねボタン*/
 	/* display: block; */
 	text-align: center;
 	/* vertical-align: middle; */
@@ -43,8 +43,8 @@ button {
 	/* width: 120px; */
 	/* margin: auto;
 	padding: 1rem 4rem; */
-	font-weight: bold;
-	border: 2px solid var(--button-background);
+	/* font-weight: bold; */
+	/* border: 2px solid var(--button-background); */
 	color: var(--button-background);
 	background: var(--talk-background);
 	transition: 0.5s;
