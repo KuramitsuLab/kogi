@@ -191,13 +191,12 @@ class Doc(object):
     #     button = f'<button class="likeit" onclick="like({recid},0)">{{}}</button>'
     #     self.htmls.append(Doc(dislike, style=button))
 
-    def add_likeit(self, recid, frmid=None, copy=None, like='👍', dislike='👎'):
+    def add_likeit(self, recid, frmid=None, copy=None, like='👍1', dislike='👎0'):
         frmid = frameid(frmid)
-        #;document.getElementById("b{frmid}").remove();
         button = f'''\
 <span id="b{frmid}">
-<button class="likeit" onclick="like({recid},1)">{like}</button>
-<button class="likeit" onclick="like({recid},0)">{{}}</button>
+<button class="likeit" onclick="like({recid},1,'b{frmid}')">{like}</button>
+<button class="likeit" onclick="like({recid},0,'b{frmid}')">{{}}</button>
 </span>'''
         self.htmls.append(Doc(dislike, style=button))
 

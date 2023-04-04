@@ -1,5 +1,6 @@
-var like = (id, score) => {
+var like = (id, score, bid) => {
     google.colab.kernel.invokeFunction('notebook.like', [id, score], {});
+    document.getElementById(bid).remove();
 };
 var copy = (id) => {
     const text = document.getElementById(`t${id}`).value;
