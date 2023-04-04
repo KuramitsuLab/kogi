@@ -5,8 +5,8 @@ html {
     --talk-color: #333;
     --code-background: #e79849ef;
     --code-color: #111;    
-    --button-background:  #FFF4DB; /* 練り色 */
-    --button-color: #F7FCFE; /* 卯の花色 (うのはないろ)*/
+    --button-background:  #FFE8AF; /* レグホン */
+    --button-color: #FCBB76; /* 卯の花色 (うのはないろ)*/
 }
 
 html[theme=dark] {
