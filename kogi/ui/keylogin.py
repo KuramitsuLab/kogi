@@ -143,30 +143,31 @@ ULEVEL = [
     '今日も一緒にがんばりましょう！',
     '今日はとってもプログラミング日和よね！',
     '最近、どんどん上達している感じだね！',
-    'なんか、プログラミングは十分、得意そうだね！',
+    'なんだか、プログラミングは十分、得意そうだね！',
     'お、上級者来たね！',
 ]
 
 ZHTBL = str.maketrans('０１２３４５６７８９', '0123456789')
 STUDENT_CODE = 'm8YpbzR6ovEjyzJ8oXnpT3BlbkFJYwKQCc1DmrTOj4Adj'
+K='k'
 
 
 def ulogin(uname, code, ucode, ukeys):
     try:
         kogi_set(approved=True)
         uname = uname.translate(ZHTBL)
-        is_student = uname.startswith("230") or uname.startswith(
-            "240") or uname.startswith("220") or uname.startswith("210")
+        is_student = uname.startswith("223") or uname.startswith(
+            "222") or uname.startswith("220") or uname.startswith("221")
         average_time, ulevel = check_level(ukeys)
         kogi_set(uname=uname, ulevel=ulevel, approved=True)
         record_log(type='key', uname=uname, code=code,
                    ucode=ucode, average_time=average_time,
                    ulevel=ulevel, ukeys=ukeys)
         if is_student:
-          msg = f'コギーくんを呼んだわ！{ULEVEL[ulevel-1]}'
-          kogi_set(openai_key=f'sk-{STUDENT_CODE}Ag8')
+          msg = f'コギーくんを呼んだわ！ {ULEVEL[ulevel-1]}'
+          kogi_set(openai_key=f's{K}-{STUDENT_CODE}Ag8')
         else:
-          msg = f'学籍番号が変なので、コギーくんは逃げてしまったわ。'
+          msg = f'学籍番号が変ですね。ChatGPTを使うなら再実行してね。'
         return JSON({'text': msg})
     except:
         traceback.print_exc()
