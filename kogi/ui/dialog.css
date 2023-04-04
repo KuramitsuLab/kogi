@@ -1,12 +1,12 @@
 /* https: //note.com/rocky_days_/n/n5ce4576abca5 */
 html {
-    --box-background: #F0F8FF;
-    --talk-background: #F7FCFE; /* 卯の花色 (うのはないろ)*/
+    --box-background: #F7FCFE; /* 卯の花色*/
+    --talk-background: #FFF4DB; /* 練り色 */
     --talk-color: #333;
     --code-background: #e79849ef;
     --code-color: #111;    
-    --button-background: #F7FCFE; /* 卯の花色 (うのはないろ)*/
-    --button-color: #e79849ef;
+    --button-background:  #FFF4DB; /* 練り色 */
+    --button-color: #F7FCFE; /* 卯の花色 (うのはないろ)*/
 }
 
 html[theme=dark] {
@@ -42,7 +42,7 @@ button { /* いいねボタン*/
 	/* margin: auto;
 	padding: 1rem 4rem; */
 	/* font-weight: bold; */
-	border: 2px solid var(--button-background);
+	border: 2px solid var(--button-color);
 	color: var(--button-color);
 	background: var(--talk-background);
 	transition: 0.5s;
@@ -50,7 +50,7 @@ button { /* いいねボタン*/
 
 button:hover {
 	color: #fff;
-	background: var(--button-background);
+	background: var(--button-color);
 }
 
 .sb-box {
