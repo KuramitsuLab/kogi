@@ -1,14 +1,12 @@
 /* https: //note.com/rocky_days_/n/n5ce4576abca5 */
 html {
     --box-background: #F0F8FF;
-    --talk-background: #FAF0E6;
+    --talk-background: #F7FCFE; /* 卯の花色 (うのはないろ)*/
     --talk-color: #333;
-
     --code-background: #e79849ef;
-    --code-color: #111;
-    
-    --button-background: rgb(215, 109, 38);
-    --button-color: #eee;
+    --code-color: #111;    
+    --button-background: #F7FCFE; /* 卯の花色 (うのはないろ)*/
+    --button-color: #e79849ef;
 }
 
 html[theme=dark] {
@@ -44,8 +42,8 @@ button { /* いいねボタン*/
 	/* margin: auto;
 	padding: 1rem 4rem; */
 	/* font-weight: bold; */
-	/* border: 2px solid var(--button-background); */
-	color: var(--button-background);
+	border: 2px solid var(--button-background);
+	color: var(--button-color);
 	background: var(--talk-background);
 	transition: 0.5s;
 }
