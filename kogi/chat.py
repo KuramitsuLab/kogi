@@ -147,6 +147,7 @@ def set_chatbot(chatbot):
     global _DefaultChatbot
     _DefaultChatbot = chatbot
 
+LIKEIT=[0, 0]
 
 def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'):
     height = kogi_get('height', height)
@@ -169,6 +170,7 @@ def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'
 
     if google_colab:
         def ask(user_text):
+            global LIKEIT
             nonlocal bot
             try:
                 if isinstance(user_text, str):
@@ -177,17 +179,19 @@ def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'
                 display_user(user_text)
                 doc, rec_id = bot.prompt(user_text)
                 doc = Doc.md(doc)
-                doc.add_likeit(rec_id)
+                doc.add_likeit(rec_id, like=f'👍{LIKEIT[1]}', dislike=f'👎{LIKEIT[0]}')
                 display_bot(doc)
             except:
                 traceback.print_exc()
                 display_bot('@robot:バグで処理に失敗しました。ごめんなさい')
 
         def like(docid, score):
+            global LIKEIT
             nonlocal bot
             try:
                 debug_print(docid, score)
                 bot.likeit(docid, score)
+                LIKEIT[score]+=1
             except:
                 traceback.print_exc()
                 display_bot('@robot:バグで処理に失敗しました。ごめんなさい')
