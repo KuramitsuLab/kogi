@@ -22,11 +22,14 @@ def model_chat(messages: list):
 def model_prompt(prompt, context='', post_prompt='', **kwargs):
     global model_cache
     input_text = f'{context}{prompt}{post_prompt}'
-    if prompt in model_cache:
+    if input_text in model_cache:
         return model_cache[input_text], 0
 
     role = kwargs.get('role', '優秀なPythonの先生')
-    req = '1文で短く教えてください。例えや例は不要です。'
+    if 'disable_example' in kwargs:
+        req = '1文で短く教えてください。例えや例は不要です。'
+    else:
+        req = '1文で短く教えてください。'
     premise = f"あなたは{role}です。{req}\n{context}"
     try:
         response = openai.ChatCompletion.create(
