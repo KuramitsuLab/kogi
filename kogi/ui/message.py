@@ -6,7 +6,7 @@ from IPython.display import display, HTML
 from ._google import google_colab
 
 _ICON = {
-    '@kogi': ('コギー', 'kogi-fs8.png'),
+    '@kogi': ('コギー', 'kogi_doya-fs8.png'),
     '@kogi_plus': ('コギー', 'kogi_doya-fs8.png'),
     '@kogi_minus': ('コギー', 'kogi_error-fs8.png'),
     '@robot': ('コギー', 'kogi_gaan-fs8.png'),
