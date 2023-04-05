@@ -30,22 +30,28 @@ class ChatAI(object):
             self.slots = dict(context)
         else:
             self.slots = {}
+        self.slots['assistant'] = None
 
     def record(self, task, input_text, output_text):
         rec_id = len(self.records)
         self.records.append((task, input_text, output_text))
         return rec_id
 
+
     def prompt(self, prompt):
         # 将来は分類モデルに置き換える
-        if 'どうしたら' in prompt:
+        if 'どうしたら' in prompt or 'どしたら' in prompt:
             if 'emsg' not in self.slots:
-                return '@kogi:天は人の上に人を造らず人の下に人を造らず.'
-            return self.error_hint(self.slots['emsg'], self.slots['eline'])
+                return '@kogi:何をしたいの？'
+            return self.error_hint(prompt)
         if '直して' in prompt or 'たすけて' in prompt or '助けて' in prompt:
             if 'emsg' not in self.slots:
                 return '@kogi:何を？？'
-            return self.fix_code(self.slots['emsg'], self.slots['code'])
+            return self.fix_code(self.slots['code'])
+        if prompt.startswith('+') or prompt.startswith('＋'):
+            prompt = prompt[1:]
+            if 'again' in self.slots:
+                return self.dialog_again(prompt)
         return self.dialog(prompt)
 
     def no_response(self):
@@ -59,38 +65,72 @@ class ChatAI(object):
         rec_id = record_log(type='prompt_dialog',
                             prompt=prompt, response=response, tokens=tokens)
         self.chats[rec_id] = (prompt, response, ('dialog', input_text))
+        self.slots['again'] = ('', prompt, response)
         return response, rec_id
 
-    def error_hint(self, emsg, eline):
-        prompt = f'コード`{eline}`で、`{emsg}`というエラーが出た。どうしたら良いの？'
-        response, tokens = model_prompt(prompt)
+    def dialog_again(self, input_text):
+        if 'again' in self.slots:
+            context, prompt, response = self.slots['again']
+        response, tokens = model_prompt(prompt, context=context, post_prompt=input_text)
+        if response == '':
+            return self.no_response()
+        prompt=f'{context}\n{prompt}\n{input_text}'
+        rec_id = record_log(type='prompt_again',prompt=prompt, response=response, tokens=tokens)
+        self.chats[rec_id] = (prompt, response, ('dialog_again', input_text))
+        #self.slots['again'] = ('', prompt, response)
+        return response, rec_id
+
+
+    def get_context(self, include_eline=False, include_code=False):
+        ss=[]
+        if 'emsg' in self.slots:
+            emsg = self.slots['emsg']
+            ss.append(f'エラーの発生: {emsg}')
+        if include_eline and 'eline' in self.slots:
+            eline = self.slots['eline']
+            ss.append(f'エラーの発生した行: {eline}')
+        if include_code and 'code' in self.slots:
+            ss.append('コード:')
+            ss.append('```')
+            for line in self.slots['code'].splitlines():
+                if '"' in line or "'" in line:
+                    ss.append(line)
+                else:
+                    line, _, _ = line.partition('#')
+                    ss.append(line)
+            ss.append('```')
+        return '\n'.join(ss)
+
+    def error_hint(self, prompt):
+        emsg = self.slots['emsg']
+        eline = self.slots['eline']
+        context = self.get_context(include_eline=True)
+        prompt = '原因と解決のヒントを簡単に説明してください。'
+        response, tokens = model_prompt(prompt, context=context)
         if response == '':
             return self.no_response()
         rec_id = record_log(type='prompt_error_hint',
                             prompt=prompt, response=response, tokens=tokens,
                             emsg=emsg, eline=eline)
         self.chats[rec_id] = (prompt, response, ('error_hint', emsg, eline))
+        self.slots['again'] = (context, prompt, response)
         return response, rec_id
 
-    def fix_code(self, emsg, code):
-        ss=[]
-        for line in code.splitlines():
-            if '"' in line or "'" in line:
-                ss.append(line)
-            else:
-                line, _, _ = line.partition('#')
-                ss.append(line)
-        code='\n'.join(ss)
+    def fix_code(self, code):
+        emsg = self.slots['emsg']
+        code = self.slots['code']
         if len(code) > 512:
-            return '@kogi:直すべきコードが長すぎにゃ', 0
-        prompt = f'`{emsg}`というエラーが出た。`{code}`を修正してください。'
-        response, tokens = model_prompt(prompt)
+            return '@kogi:直すべきコードがちょっと長すぎるね', 0
+        context = self.get_context(include_code=True)
+        prompt = f'上記のコードを修正してください。'
+        response, tokens = model_prompt(prompt, context=context)
         if response == '':
             return self.no_response()
         rec_id = record_log(type='prompt_fix_code',
                             prompt=prompt, response=response, tokens=tokens,
-                            emsg=emsg, eline=code)
+                            emsg=emsg, code=code)
         self.chats[rec_id] = (prompt, response, ('fix_code', emsg, code))
+        self.slots['again'] = (context, prompt, response)
         return response, rec_id
 
     def likeit(self, rec_id, score):

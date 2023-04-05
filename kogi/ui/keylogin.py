@@ -59,7 +59,7 @@ span.psw {
 <form id="base">
   <b>こんにちは！ コギーくんは、皆さんの学習状況にあわせてお手伝いします。</b>
   <div class="container">
-    <label for="uname">学籍番号(正しくないとChatGPTは使用できません)</label>
+    <label for="uname">学籍番号(正しくないと機能が制限されます)</label>
     <input type="text" placeholder="学籍番号" id="uname" name="uname" required>
     <label for="psw">タイピング力も見せてね</label>
     <div><code id="code">print("A", "B", "C")</code><div>
@@ -68,7 +68,7 @@ span.psw {
     </div>
   <div class="container" style="background-color:#f1f1f1">
     <button type="button" id="ulogin" class="login">利用規約に同意する</button>
-    <span class="psw"> <a href="https://ja.wikipedia.org/wiki/政府標準利用規約" target="_blank">利用規約とは</a></span>
+    <span class="psw"> <a href="https://kuramitsulab.github.io/kogi_tos.html" target="_blank">利用規約とは</a></span>
   </div>
 </form>
 <script>
@@ -167,7 +167,7 @@ def ulogin(uname, code, ucode, ukeys):
           msg = f'コギーくんを呼んだわ！ {ULEVEL[ulevel-1]}'
           kogi_set(openai_key=f's{K}-{STUDENT_CODE}Ag8')
         else:
-          msg = f'学籍番号が変ですね。ChatGPTを使うなら再実行してね。'
+          msg = f'学籍番号が変ですね。AIを使いたいなら再実行してね。'
         return JSON({'text': msg})
     except:
         traceback.print_exc()
@@ -180,3 +180,5 @@ def login(login_func=ulogin):
     doc = Doc.HTML(LOGIN_HTML)
     doc.set_mention('@ta')
     kogi_print(doc, height=280)
+
+
