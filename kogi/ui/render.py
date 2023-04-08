@@ -27,6 +27,15 @@ def encode_md_text(s):
     return s
 
 
+try:
+    import markdown
+
+    def encode_md(s):
+        return markdown.markdown(s)
+except ModuleNotFoundError:
+    pass
+
+
 TERM = {
     'code': '\033[35m{}\033[0m',
     'glay': '\033[07m{}\033[0m',

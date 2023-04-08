@@ -2,3 +2,4 @@ openai
 pegtree
 requests
 requests_oauthlib
+markdown
