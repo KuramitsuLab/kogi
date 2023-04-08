@@ -20,6 +20,7 @@ class ChatAI(object):
     def __init__(self, slots=None):
         self.slots = slots or {}
         self.chats = {}
+        self.face = '@kogi_plus'
 
     def get(self, key, value):
         return self.slots.get(key, value)
@@ -30,59 +31,71 @@ class ChatAI(object):
             self.slots = dict(context)
         else:
             self.slots = {}
-        self.slots['assistant'] = None
+        self.slots['rec_id'] = None
 
-    def record(self, task, input_text, output_text):
-        rec_id = len(self.records)
-        self.records.append((task, input_text, output_text))
-        return rec_id
+    # def record(self, task, input_text, output_text):
+    #     rec_id = len(self.records)
+    #     self.records.append((task, input_text, output_text))
+    #     return rec_id
 
+    def likeit(self, rec_id, score):
+        if rec_id in self.chats:
+            context, prompt, response, data = self.chats[rec_id]
+            record_log(type='likeit', rec_id=rec_id, score=score,
+                       context=context, prompt=prompt, response=response, data=data)
+        self.slots['rec_id'] = None
+
+    def face(self, text):
+        return f'{self.face}:{text}'
 
     def prompt(self, prompt):
         # 将来は分類モデルに置き換える
+        if self.slots['rec_id'] is not None:
+            self.likeit(self.slots['rec_id'], 0)
+            self.face = '@kogi_minus'
+        else:
+            self.face = '@kogi_plus'
         if 'どうしたら' in prompt or 'どしたら' in prompt:
-            if 'emsg' not in self.slots:
-                return '@kogi:何をしたいの？'
             return self.error_hint(prompt)
         if '直して' in prompt or 'たすけて' in prompt or '助けて' in prompt:
-            if 'emsg' not in self.slots:
-                return '@kogi:何を？？'
-            return self.fix_code(self.slots['code'])
+            return self.fix_code(prompt)
         if prompt.startswith('+') or prompt.startswith('＋'):
             prompt = prompt[1:]
             if 'again' in self.slots:
                 return self.dialog_again(prompt)
-        return self.dialog(prompt)
+        return self.dialog_request(prompt)
 
     def no_response(self):
-        return '@robot:ChatGPTが反応しないんだけど..'
+        return 'AIが反応しない..'
 
-    def dialog(self, input_text):
+    def dialog_request(self, input_text):
         prompt = input_text
         response, tokens = model_prompt(prompt)
         if response == '':
             return self.no_response()
-        rec_id = record_log(type='prompt_dialog',
-                            prompt=prompt, response=response, tokens=tokens)
-        self.chats[rec_id] = (prompt, response, ('dialog', input_text))
-        self.slots['again'] = ('', prompt, response)
-        return response, rec_id
+        rec_id = record_log(type='prompt', prompt_type='request',
+                            context='', prompt=prompt, response=response, tokens=tokens)
+        self.chats[rec_id] = ('', prompt, response,
+                              ('dialog_request', input_text))
+        self.slots['rec_id'] = rec_id
+        return self.face(response), rec_id
 
     def dialog_again(self, input_text):
         if 'again' in self.slots:
             context, prompt, response = self.slots['again']
-        response, tokens = model_prompt(prompt, context=context, post_prompt=input_text)
+        prompt = f'{prompt}\n{input_text}'
+        response, tokens = model_prompt(prompt, context=context)
         if response == '':
             return self.no_response()
-        prompt=f'{context}\n{prompt}\n{input_text}'
-        rec_id = record_log(type='prompt_again',prompt=prompt, response=response, tokens=tokens)
-        self.chats[rec_id] = (prompt, response, ('dialog_again', input_text))
-        #self.slots['again'] = ('', prompt, response)
-        return response, rec_id
-
+        rec_id = record_log(type='prompt', prompt_type='again',
+                            context=context, prompt=prompt, response=response, tokens=tokens)
+        self.chats[rec_id] = (context, prompt, response,
+                              ('dialog_again', input_text))
+        self.slots['rec_id'] = rec_id
+        return self.face(response), rec_id
 
     def get_context(self, include_eline=False, include_code=False):
-        ss=[]
+        ss = []
         if 'emsg' in self.slots:
             emsg = self.slots['emsg']
             ss.append(f'エラーの発生: {emsg}')
@@ -105,39 +118,37 @@ class ChatAI(object):
         emsg = self.slots['emsg']
         eline = self.slots['eline']
         context = self.get_context(include_eline=True)
-        prompt = '原因と解決のヒントを簡単に説明してください。'
+        prompt = '原因と解決のヒントを簡潔に教えてください。'
         response, tokens = model_prompt(prompt, context=context)
         if response == '':
             return self.no_response()
-        rec_id = record_log(type='prompt_error_hint',
-                            prompt=prompt, response=response, tokens=tokens,
-                            emsg=emsg, eline=eline)
-        self.chats[rec_id] = (prompt, response, ('error_hint', emsg, eline))
-        self.slots['again'] = (context, prompt, response)
-        return response, rec_id
+        rec_id = record_log(type='prompt', prompt_type='error',
+                            context=context, prompt=prompt, response=response, tokens=tokens)
+        record_log(type='error_hint',
+                   response=response, tokens=tokens, emsg=emsg, eline=eline)
+        self.chats[rec_id] = (context, prompt, response,
+                              ('error_hint', emsg, eline))
+        self.slots['rec_id'] = rec_id
+        return self.face(response), rec_id
 
-    def fix_code(self, code):
+    def fix_code(self, prompt):
         emsg = self.slots['emsg']
         code = self.slots['code']
         if len(code) > 512:
-            return '@kogi:直すべきコードがちょっと長すぎるね', 0
+            return '@kogi:コードがちょっと長すぎるね', 0
         context = self.get_context(include_code=True)
         prompt = f'上記のコードを修正してください。'
         response, tokens = model_prompt(prompt, context=context)
         if response == '':
             return self.no_response()
-        rec_id = record_log(type='prompt_fix_code',
-                            prompt=prompt, response=response, tokens=tokens,
-                            emsg=emsg, code=code)
-        self.chats[rec_id] = (prompt, response, ('fix_code', emsg, code))
-        self.slots['again'] = (context, prompt, response)
-        return response, rec_id
-
-    def likeit(self, rec_id, score):
-        if rec_id in self.chats:
-            prompt, response, data = self.chats[rec_id]
-            record_log(type='likeit', rec_id=rec_id, score=score,
-                       prompt=prompt, response=response, data=data)
+        rec_id = record_log(type='prompt', prompt_type='code_fix',
+                            context=context, prompt=prompt, response=response, tokens=tokens)
+        record_log(type='code_fix',
+                   response=response, tokens=tokens, emsg=emsg, code=code)
+        self.chats[rec_id] = (context, prompt, response,
+                              ('fix_code', emsg, code))
+        self.slots['rec_id'] = rec_id
+        return self.face(response), rec_id
 
 
 _DefaultChatbot = ChatAI()
@@ -147,7 +158,9 @@ def set_chatbot(chatbot):
     global _DefaultChatbot
     _DefaultChatbot = chatbot
 
-LIKEIT=[0, 0]
+
+LIKEIT = [0, 0]
+
 
 def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'):
     height = kogi_get('height', height)
@@ -179,7 +192,8 @@ def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'
                 display_user(user_text)
                 doc, rec_id = bot.prompt(user_text)
                 doc = Doc.md(doc)
-                doc.add_likeit(rec_id, like=f'👍{LIKEIT[1]}', dislike=f'👎{LIKEIT[0]}')
+                doc.add_likeit(
+                    rec_id, like=f'👍{LIKEIT[1]}', dislike=f'👎{LIKEIT[0]}')
                 display_bot(doc)
             except:
                 traceback.print_exc()
@@ -191,21 +205,10 @@ def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'
             try:
                 debug_print(docid, score)
                 bot.likeit(docid, score)
-                LIKEIT[score]+=1
+                LIKEIT[score] += 1
             except:
                 traceback.print_exc()
                 display_bot('@robot:バグで処理に失敗しました。ごめんなさい')
-
-        # def say(prompt, text):
-        #     nonlocal bot
-        #     try:
-        #         debug_print(text, prompt)
-        #         display_user(text)
-        #         doc = bot.exec(prompt)
-        #         display_bot(doc)
-        #     except:
-        #         traceback.print_exc()
-        #         display_bot('@robot:バグで処理に失敗しました。ごめんなさい')
 
         google_colab.register_callback('notebook.ask', ask)
         google_colab.register_callback('notebook.like', like)
@@ -240,16 +243,14 @@ def error_message(record):
             doc.append(stack['_doc'])
     else:
         doc.append(record['_doc'])
-    # doc.add_button('@error_hint', 'どうしたらいいの？')
-    # doc.add_button('@fix_code', '直してみて')
-    # doc.add_button('@xcall', '先生を呼んで')
+    doc.set_mention('@kogi_minus')
     return doc
 
 
 # _HIRA_PAT = re.compile('[あ-を]')
 
 
-# def is_kogi_call(record):
+# def is_direct_kogi_call(record):
 #     if record.get('etype') == 'NameError':
 #         eparams = record['_eparams']
 #         return re.search(_HIRA_PAT, eparams[0])
@@ -261,7 +262,7 @@ def catch_and_start_kogi(exc_info=None, code: str = None, context: dict = None, 
         exc_info = sys.exc_info()
     record = kogi_exc(code=code, exc_info=exc_info,
                       caught_ex=exception, translate=translate)
-    # if is_kogi_call(record):
+    # if is_direct_kogi_call(record):
     #     msg = record['_eparams'][0][1:-1]
     #     debug_print(msg)
     #     call_and_start_kogi([msg], code)

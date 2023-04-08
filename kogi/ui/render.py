@@ -200,15 +200,18 @@ class Doc(object):
 </span>'''
         self.htmls.append(Doc(dislike, style=button))
 
-
     def add_button(self, cmd, message, frmid=None):
         frmid = frameid(frmid)
         cmd = f"'{cmd}'"
         button = f'<button id="b{frmid}" onclick="say({cmd},{frmid})">{{}}</button>'
         self.htmls.append(Doc(message, style=button))
 
-    def set_mention(self, mention):
-        self.mention = mention
+    def set_mention(self, mention: str):
+        if mention.startswith('@'):
+            mention, _, text = mention.partition(':')
+            self.mention = mention
+            return text
+        return mention
 
     def get_mention(self, default=None):
         if hasattr(self, 'mention'):
@@ -234,6 +237,7 @@ class Doc(object):
     @classmethod
     def md(cls, s, style=None):
         doc = Doc(style=style)
+        s = doc.set_mention(s)
         doc.htmls.append(encode_md(s))
         doc.terms.append(encode_md_term(s))
         doc.texts.append(encode_md_text(s))
