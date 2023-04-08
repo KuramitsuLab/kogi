@@ -66,7 +66,7 @@ def kogi_run_cell(ipy, raw_cell, kwargs):
                     return result
         if result is None:
             result = RUN_CELL(ipy, raw_cell, kwargs)
-            if 'from google.colab.output import _js' not in raw_cell:
+            if 'from google.colab.output import _js' not in raw_cell and raw_cell != "":
                 record_log(type='run_cell', code=raw_cell)
         return result
 
