@@ -20,7 +20,7 @@ class ChatAI(object):
     def __init__(self, slots=None):
         self.slots = slots or {}
         self.chats = {}
-        self.face = '@kogi_plus'
+        self.face_icon = '@kogi_plus'
 
     def get(self, key, value):
         return self.slots.get(key, value)
@@ -46,15 +46,15 @@ class ChatAI(object):
         self.slots['rec_id'] = None
 
     def face(self, text):
-        return f'{self.face}:{text}'
+        return f'{self.face_icon}:{text}'
 
     def prompt(self, prompt):
         # 将来は分類モデルに置き換える
         if self.slots['rec_id'] is not None:
             self.likeit(self.slots['rec_id'], 0)
-            self.face = '@kogi_minus'
+            self.face_icon = '@kogi_minus'
         else:
-            self.face = '@kogi_plus'
+            self.face_icon = '@kogi_plus'
         if 'どうしたら' in prompt or 'どしたら' in prompt:
             return self.error_hint(prompt)
         if '直して' in prompt or 'たすけて' in prompt or '助けて' in prompt:
