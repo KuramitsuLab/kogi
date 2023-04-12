@@ -6,8 +6,15 @@ _CODE = re.compile(r'(`[^`]+`)')
 _BOLD = re.compile(r'(__[^_]+__)')
 
 
+def replace_pre(s):
+    while '```' in s:
+        s = s.replace('```', '<pre>', 1).replace('```', '</pre>', 1)
+    return s
+
+
 def encode_md(s):
     s = s.replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br>')
+    s = replace_pre(s)
     for t in re.findall(_CODE, s):
         t2 = f'<code>{t[1:-1]}</code>'
         s = s.replace(t, t2)
@@ -27,13 +34,13 @@ def encode_md_text(s):
     return s
 
 
-try:
-    import markdown
+# try:
+#     import markdown
 
-    def encode_md(s):
-        return markdown.markdown(s)
-except ModuleNotFoundError:
-    pass
+#     def encode_md(s):
+#         return markdown.markdown(s)
+# except ModuleNotFoundError:
+#     pass
 
 
 TERM = {

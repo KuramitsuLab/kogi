@@ -149,25 +149,33 @@ ULEVEL = [
 
 ZHTBL = str.maketrans('０１２３４５６７８９', '0123456789')
 STUDENT_CODE = 'm8YpbzR6ovEjyzJ8oXnpT3BlbkFJYwKQCc1DmrTOj4Adj'
-K='k'
+K = 'k'
+
+PID = ('223', '222', '220', '221', '122', '123')
+
+
+def check_uname(s):
+    for p in PID:
+        if s.startswith(p):
+            return True
+    return False
 
 
 def ulogin(uname, code, ucode, ukeys):
     try:
         kogi_set(approved=True)
         uname = uname.translate(ZHTBL)
-        is_student = uname.startswith("223") or uname.startswith(
-            "222") or uname.startswith("220") or uname.startswith("221")
+        is_student = check_uname(uname)
         average_time, ulevel = check_level(ukeys)
         kogi_set(uname=uname, ulevel=ulevel, approved=True)
         record_log(type='key', uname=uname, code=code,
                    ucode=ucode, average_time=average_time,
                    ulevel=ulevel, ukeys=ukeys)
         if is_student:
-          msg = f'コギーくんを呼んだわ！ {ULEVEL[ulevel-1]}'
-          kogi_set(openai_key=f's{K}-{STUDENT_CODE}Ag8')
+            msg = f'コギーくんを呼んだわ！ {ULEVEL[ulevel-1]}'
+            kogi_set(openai_key=f's{K}-{STUDENT_CODE}Ag8')
         else:
-          msg = f'学籍番号が変ですね。AIを使いたいなら再実行してね。'
+            msg = f'学籍番号が変ね。AIを使いたいなら再起動してね。'
         return JSON({'text': msg})
     except:
         traceback.print_exc()
@@ -180,5 +188,3 @@ def login(login_func=ulogin):
     doc = Doc.HTML(LOGIN_HTML)
     doc.set_mention('@ta')
     kogi_print(doc, height=280)
-
-

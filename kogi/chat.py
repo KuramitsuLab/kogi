@@ -2,9 +2,10 @@ from .ui._google import google_colab
 from .ui.render import Doc
 from .liberr import kogi_exc
 from .ui.message import display_dialog, append_message
-import traceback
 import re
 import sys
+import traceback
+import time
 from IPython import get_ipython
 
 from .service import (
@@ -21,6 +22,7 @@ class ChatAI(object):
         self.slots = slots or {}
         self.chats = {}
         self.face_icon = '@kogi_plus'
+        self.prev_time = time.time()
 
     def get(self, key, value):
         return self.slots.get(key, value)
@@ -32,6 +34,12 @@ class ChatAI(object):
         else:
             self.slots = {}
         self.slots['rec_id'] = None
+
+    def difftime(self):
+        t = time.time()
+        diff = int(t - self.prev_time)
+        self.prev_time = t
+        return diff
 
     # def record(self, task, input_text, output_text):
     #     rec_id = len(self.records)
@@ -49,12 +57,12 @@ class ChatAI(object):
         return f'{self.face_icon}:{text}'
 
     def prompt(self, prompt):
-        # 将来は分類モデルに置き換える
         if self.slots['rec_id'] is not None:
             self.likeit(self.slots['rec_id'], 0)
             self.face_icon = '@kogi_minus'
         else:
             self.face_icon = '@kogi_plus'
+        # 将来は分類モデルに置き換える
         if 'どうしたら' in prompt or 'どしたら' in prompt:
             return self.error_hint(prompt)
         if '直して' in prompt or 'たすけて' in prompt or '助けて' in prompt:
@@ -73,7 +81,7 @@ class ChatAI(object):
         response, tokens = model_prompt(prompt)
         if response == '':
             return self.no_response()
-        rec_id = record_log(type='prompt', prompt_type='request',
+        rec_id = record_log(type='prompt', prompt_type='request', difftime=self.difftime(),
                             context='', prompt=prompt, response=response, tokens=tokens)
         self.chats[rec_id] = ('', prompt, response,
                               ('dialog_request', input_text))
@@ -87,7 +95,7 @@ class ChatAI(object):
         response, tokens = model_prompt(prompt, context=context)
         if response == '':
             return self.no_response()
-        rec_id = record_log(type='prompt', prompt_type='again',
+        rec_id = record_log(type='prompt', prompt_type='again', difftime=self.difftime(),
                             context=context, prompt=prompt, response=response, tokens=tokens)
         self.chats[rec_id] = (context, prompt, response,
                               ('dialog_again', input_text))
@@ -122,7 +130,7 @@ class ChatAI(object):
         response, tokens = model_prompt(prompt, context=context)
         if response == '':
             return self.no_response()
-        rec_id = record_log(type='prompt', prompt_type='error',
+        rec_id = record_log(type='prompt', prompt_type='error', difftime=self.difftime(),
                             context=context, prompt=prompt, response=response, tokens=tokens)
         record_log(type='error_hint',
                    response=response, tokens=tokens, emsg=emsg, eline=eline)
@@ -141,9 +149,9 @@ class ChatAI(object):
         response, tokens = model_prompt(prompt, context=context)
         if response == '':
             return self.no_response()
-        rec_id = record_log(type='prompt', prompt_type='code_fix',
+        rec_id = record_log(type='prompt', prompt_type='code', difftime=self.difftime(),
                             context=context, prompt=prompt, response=response, tokens=tokens)
-        record_log(type='code_fix',
+        record_log(type='fix_code',
                    response=response, tokens=tokens, emsg=emsg, code=code)
         self.chats[rec_id] = (context, prompt, response,
                               ('fix_code', emsg, code))
@@ -203,8 +211,8 @@ def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'
             global LIKEIT
             nonlocal bot
             try:
-                debug_print(docid, score)
-                bot.likeit(docid, score)
+                # debug_print(docid, score)
+                bot.likeit(docid, score if score > 0 else -1)
                 LIKEIT[score] += 1
             except:
                 traceback.print_exc()
