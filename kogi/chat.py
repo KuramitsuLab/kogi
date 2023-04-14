@@ -225,9 +225,22 @@ def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'
     return target
 
 
+def remove_comment(code):
+    ss = []
+    for line in code.splitlines():
+        if '#kogi' in line:
+            line, _, _ = line.rpartition('#kogi')
+        if len(line) > 0:
+            ss.append(line)
+    return '\n'.join(ss)
+
+
 def call_and_start_kogi(actions, code: str = None, context: dict = None):
     for user_text in actions:
         _DefaultChatbot.update(context)
+        code = remove_comment(code)
+        if len(code) > 0:
+            user_text = f'コーディング中:\n```\n{code}\n```\n{user_text}\n'
         doc, rec_id = _DefaultChatbot.prompt(user_text)
         doc = Doc.md(doc)
         doc.add_likeit(rec_id)
