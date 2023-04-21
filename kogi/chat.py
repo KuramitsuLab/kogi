@@ -229,6 +229,7 @@ def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'
 
 def call_and_start_kogi(actions, code: str = None, context: dict = None):
     for user_text in actions:
+        context['code']=code
         _DefaultChatbot.update(context)
         code = remove_comment(code)
         doc, rec_id = _DefaultChatbot.prompt(user_text, include_code=len(code) > 0)
