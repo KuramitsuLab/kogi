@@ -38,7 +38,6 @@ class ChatAI(object):
         return self.slots.get(key, value)
 
     def update(self, context: dict):
-        self.chats = {}
         if context:
             self.slots = dict(context)
         else:
@@ -229,8 +228,8 @@ def start_dialog(bot, start='', height=None, placeholder='質問はこちらに'
 
 def call_and_start_kogi(actions, code: str = None, context: dict = None):
     for user_text in actions:
-        context['code']=code
         _DefaultChatbot.update(context)
+        _DefaultChatbot.slots['code']=code
         code = remove_comment(code)
         doc, rec_id = _DefaultChatbot.prompt(user_text, include_code=len(code) > 0)
         doc = Doc.md(doc)
