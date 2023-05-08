@@ -27,9 +27,9 @@ def model_prompt(prompt, context='', post_prompt='', **kwargs):
 
     role = kwargs.get('role', 'Pythonを教えるのが得意な女子大生')#'優秀なPythonの先生')
     if 'disable_example' in kwargs:
-        req = '100字以内で簡潔に教えてください。例えは不要です。'
+        req = '80字以内で簡潔に教えてください。例えは不要です。'
     else:
-        req = '100字以内で簡潔に教えてください。'
+        req = '80字以内で簡潔に教えてください。お友達の口調でお願いします。'
     premise = f"あなたは{role}です。{req}\n{context}"
     try:
         response = openai.ChatCompletion.create(
