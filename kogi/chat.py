@@ -72,7 +72,7 @@ class ChatAI(object):
         else:
             self.face_icon = '@kogi_plus'
         # 将来は分類モデルに置き換える
-        if '直して' in input_text:
+        if input_text == '直して' or 'コード' in input_text:
             kwargs['include_code'] = True
         if 'エラー' in input_text or 'どうしたら' in input_text:
             if 'eline' in self.slots:
