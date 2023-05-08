@@ -75,17 +75,12 @@ class ChatAI(object):
         if '直して' in input_text:
             kwargs['include_code'] = True
         if 'エラー' in input_text or 'どうしたら' in input_text:
-            kwargs['include_eline'] = True
+            if 'eline' in self.slots:
+                kwargs['include_eline'] = True
+            else:
+                kwargs['include_code'] = True
         if len(input_text) < 7: #コードを直して
             kwargs['detailed'] = True
-        # if 'どうしたら' in prompt or 'どしたら' in prompt:
-        #     return self.error_hint(prompt)
-        # if '直して' in prompt or 'たすけて' in prompt or '助けて' in prompt:
-        #     return self.fix_code(prompt)
-        # if prompt.startswith('+') or prompt.startswith('＋'):
-        #     prompt = prompt[1:]
-        #     if 'again' in self.slots:
-        #         return self.dialog_again(prompt)
         return self.dialog_with_context(input_text, **kwargs)
 
     def no_response(self):
@@ -122,42 +117,6 @@ class ChatAI(object):
                               ('dialog_request', input_text, kwargs))
         self.slots['rec_id'] = rec_id
         return self.face(response), rec_id
-
-    # def error_hint(self, prompt):
-    #     emsg = self.slots['emsg']
-    #     eline = self.slots['eline']
-    #     context = self.get_context(include_eline=True)
-    #     prompt = '解決のヒントを簡潔に教えてください。'
-    #     response, tokens = model_prompt(prompt, context=context)
-    #     if response == '':
-    #         return self.no_response()
-    #     rec_id = record_log(type='prompt', prompt_type='error', difftime=self.difftime(),
-    #                         context=context, prompt=prompt, response=response, tokens=tokens)
-    #     record_log(type='error_hint',
-    #                response=response, tokens=tokens, emsg=emsg, eline=eline)
-    #     self.chats[rec_id] = (context, prompt, response,
-    #                           ('error_hint', emsg, eline))
-    #     self.slots['rec_id'] = rec_id
-    #     return self.face(response), rec_id
-
-    # def fix_code(self, prompt):
-    #     emsg = self.slots['emsg']
-    #     code = self.slots['code']
-    #     if len(code) > 512:
-    #         return '@kogi:コードがちょっと長すぎるね', 0
-    #     context = self.get_context(include_code=True)
-    #     prompt = f'上記のコードを修正してください。'
-    #     response, tokens = model_prompt(prompt, context=context)
-    #     if response == '':
-    #         return self.no_response()
-    #     rec_id = record_log(type='prompt', prompt_type='code', difftime=self.difftime(),
-    #                         context=context, prompt=prompt, response=response, tokens=tokens)
-    #     record_log(type='fix_code',
-    #                response=response, tokens=tokens, emsg=emsg, code=code)
-    #     self.chats[rec_id] = (context, prompt, response,
-    #                           ('fix_code', emsg, code))
-    #     self.slots['rec_id'] = rec_id
-    #     return self.face(response), rec_id
 
 
 _DefaultChatbot = ChatAI()
@@ -258,14 +217,14 @@ def error_message(record):
     return doc
 
 
-# _HIRA_PAT = re.compile('[あ-を]')
+_HIRA_PAT = re.compile('[あ-を]')
 
 
-# def is_direct_kogi_call(record):
-#     if record.get('etype') == 'NameError':
-#         eparams = record['_eparams']
-#         return re.search(_HIRA_PAT, eparams[0])
-#     return False
+def is_direct_kogi_call(record):
+    if record.get('etype') == 'NameError':
+        eparams = record['_eparams']
+        return re.search(_HIRA_PAT, eparams[0])
+    return False
 
 
 def catch_and_start_kogi(exc_info=None, code: str = None, context: dict = None, exception=None, enable_dialog=True):
@@ -273,11 +232,11 @@ def catch_and_start_kogi(exc_info=None, code: str = None, context: dict = None, 
         exc_info = sys.exc_info()
     record = kogi_exc(code=code, exc_info=exc_info,
                       caught_ex=exception, translate=translate)
-    # if is_direct_kogi_call(record):
-    #     msg = record['_eparams'][0][1:-1]
-    #     debug_print(msg)
-    #     call_and_start_kogi([msg], code)
-    #     return
+    if is_direct_kogi_call(record):
+        msg = record['_eparams'][0][1:-1]
+        debug_print(msg)
+        call_and_start_kogi([msg], code)
+        return
 
     record_log(type='error', **record)
     messages = error_message(record)
