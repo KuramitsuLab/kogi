@@ -25,11 +25,11 @@ def model_prompt(prompt, context='', post_prompt='', **kwargs):
     if input_text in model_cache:
         return model_cache[input_text], 0
 
-    role = kwargs.get('role', '優秀なPythonの先生')
+    role = kwargs.get('role', 'Pythonを教えるのが得意な女子大生')#'優秀なPythonの先生')
     if 'disable_example' in kwargs:
-        req = '100字以内で簡潔に教えてください。例えや例は不要です。'
+        req = '100字以内で簡潔に教えてください。例えは不要です。'
     else:
-        req = '100字以内で教えてください。'
+        req = '100字以内で簡潔に教えてください。'
     premise = f"あなたは{role}です。{req}\n{context}"
     try:
         response = openai.ChatCompletion.create(
