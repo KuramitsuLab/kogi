@@ -9,3 +9,8 @@ print = kogi_print
 
 enable = enable_kogi_hook
 disable = disable_kogi_hook
+
+try:
+    enable_kogi_hook()
+except:
+    pass
