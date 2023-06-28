@@ -72,13 +72,10 @@ class ChatAI(object):
         else:
             self.face_icon = '@kogi_plus'
         # 将来は分類モデルに置き換える
-        if input_text == '直して' or 'コード' in input_text:
+        if 'code' in self.slots:
             kwargs['include_code'] = True
-        if 'エラー' in input_text or 'どうしたら' in input_text:
-            if 'eline' in self.slots:
-                kwargs['include_eline'] = True
-            else:
-                kwargs['include_code'] = True
+        if 'eline' in self.slots:
+            kwargs['include_eline'] = True
         if len(input_text) < 7: #コードを直して
             kwargs['detailed'] = True
         return self.dialog_with_context(input_text, **kwargs)
@@ -110,7 +107,9 @@ class ChatAI(object):
         if response == '':
             return self.no_response()
         self.slots['prev_input_text'] = input_text
-        rec_id = record_log(type='prompt', prompt_type='auto', difftime=self.difftime(),
+        rec_id = record_log(type='prompt', 
+                            prompt_type='auto', 
+                            difftime=self.difftime(),
                             input_text=input_text,
                             context=context, prompt=prompt, response=response, tokens=tokens)
         self.chats[rec_id] = (context, prompt, response,
@@ -190,11 +189,20 @@ def call_and_start_kogi(actions, code: str = None, context: dict = None):
         _DefaultChatbot.update(context)
         _DefaultChatbot.slots['code']=code
         code = remove_comment(code)
-        doc, rec_id = _DefaultChatbot.prompt(user_text, include_code=len(code) > 0)
+        doc, rec_id = _DefaultChatbot.prompt(user_text)
         doc = Doc.md(doc)
         doc.add_likeit(rec_id)
         start_dialog(_DefaultChatbot, doc)
         return
+
+
+def kogi_prompt(prompt):
+    _DefaultChatbot.update({'prompt_type': 'direct', 'prompt_tone': ''})
+    doc, rec_id = _DefaultChatbot.prompt(prompt)
+    doc = Doc.md(doc)
+    doc.add_likeit(rec_id)
+    doc.set_mention('@robot')
+    start_dialog(_DefaultChatbot, doc)
 
 
 def error_message(record):
@@ -221,6 +229,8 @@ _HIRA_PAT = re.compile('[あ-を]')
 
 
 def is_direct_kogi_call(record):
+    if record.get('lineno') == 1 and record.get('etype') == 'SyntaxError':
+        return True
     if record.get('etype') == 'NameError':
         eparams = record['_eparams']
         return re.search(_HIRA_PAT, eparams[0])
@@ -234,9 +244,9 @@ def catch_and_start_kogi(exc_info=None, code: str = None, context: dict = None, 
                       caught_ex=exception, translate=translate)
     debug_print(record)
     if is_direct_kogi_call(record):
-        msg = record['_eparams'][0][1:-1]
-        debug_print(msg)
-        call_and_start_kogi([msg], code)
+        # msg = record['_eparams'][0][1:-1]
+        # debug_print(msg)
+        kogi_prompt(code)
         return
 
     record_log(type='error', **record)
