@@ -132,7 +132,7 @@ class ChatAI(object):
         self.slots['prev_prompt'] = input_text
         self.slots['prev_response'] = response
         rec_id = record_log(type='prompt',
-                            prompt_type=self.slot.get('prompt_type', 'auto'), 
+                            prompt_type=self.slots.get('prompt_type', 'auto'), 
                             difftime=self.difftime(),
                             input_text=input_text,
                             context=context, prompt=prompt, response=response, tokens=tokens)
