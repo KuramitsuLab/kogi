@@ -48,7 +48,7 @@ class ChatAI(object):
             self.slots['about_me'] = kogi_get('about_me')
         self.slots['tone'] = kogi_get('tone', 'お友達口調で優しく教えてください。')
         debug_print('updating slots', self.slots)
-        
+
     def difftime(self):
         t = time.time()
         diff = int(t - self.prev_time)
@@ -85,7 +85,7 @@ class ChatAI(object):
         return 'AIが反応しない..'
 
     def get_prompt(self, input_text):
-        if self.slots.get('prompt_type') != 'direct':
+        if self.slots.get('prompt_type', '') == 'direct':
             return input_text
         ss = []
         if 'role' in self.slots:
@@ -102,7 +102,7 @@ class ChatAI(object):
         return '\n'.join(ss)
 
     def get_context(self):
-        if self.slots.get('prompt_type') != 'direct':
+        if self.slots.get('prompt_type', '') == 'direct':
             return ''
         ss=[]
         if 'code' in self.slots:
