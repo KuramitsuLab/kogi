@@ -45,3 +45,30 @@ def model_prompt(prompt, context='', post_prompt='', **kwargs):
         return res, used_tokens
     except openai.error.AuthenticationError as e:
         return '', 0
+
+
+def model_prompt2(prompt, context='', **kwargs):
+    global model_cache
+    input_text = f'{prompt}\n{context}'
+    if input_text in model_cache:
+        return model_cache[input_text], 0
+
+    role = kwargs.get('role', '優秀なPythonの先生')
+    premise = f"あなたは{role}です。\n{context}"
+    length = kwargs.get('length', '80字以内で簡潔に答えください。')
+    tone = kwargs.get('tone', '')
+    prompt=f'{prompt}\n{length}\n{tone}'
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": premise},
+                {"role": "user", "content": prompt},
+            ],
+        )
+        used_tokens = response["usage"]["total_tokens"]
+        res = response.choices[0]["message"]["content"].strip()
+        model_cache[input_text] = res
+        return res, used_tokens
+    except openai.error.AuthenticationError as e:
+        return '', 0

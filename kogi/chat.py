@@ -232,6 +232,7 @@ def catch_and_start_kogi(exc_info=None, code: str = None, context: dict = None, 
         exc_info = sys.exc_info()
     record = kogi_exc(code=code, exc_info=exc_info,
                       caught_ex=exception, translate=translate)
+    debug_print(record)
     if is_direct_kogi_call(record):
         msg = record['_eparams'][0][1:-1]
         debug_print(msg)
