@@ -59,8 +59,8 @@ span.psw {
 <form id="base">
   <b>こんにちは！ コギーくんは、皆さんの学習状況にあわせてお手伝いします。</b>
   <div class="container">
-    <label for="uname">学籍番号(正しくないと機能が制限されます)</label>
-    <input type="text" placeholder="学籍番号" id="uname" name="uname" required>
+    <label for="uname">ニックネーム</label>
+    <input type="text" placeholder="コギーに呼ばれたい名前を入れてね" id="uname" name="uname" required>
     <label for="psw">タイピング力も見せてね</label>
     <div><code id="code">print("A", "B", "C")</code><div>
     <input type="text" placeholder="上のコードを入力してください。" id="ucode" name="ucode" required>
@@ -151,31 +151,17 @@ ZHTBL = str.maketrans('０１２３４５６７８９', '0123456789')
 STUDENT_CODE = 'm8YpbzR6ovEjyzJ8oXnpT3BlbkFJYwKQCc1DmrTOj4Adj'
 K = 'k'
 
-PID = ('223', '222', '220', '221', '122', '123')
-
-
-def check_uname(s):
-    for p in PID:
-        if s.startswith(p):
-            return True
-    return False
-
-
 def ulogin(uname, code, ucode, ukeys):
     try:
         kogi_set(approved=True)
-        uname = uname.translate(ZHTBL)
-        is_student = check_uname(uname)
+        uname = '名無し子' if uname.strip() == '' else uname
         average_time, ulevel = check_level(ukeys)
         kogi_set(uname=uname, ulevel=ulevel, approved=True)
         record_log(type='key', uname=uname, code=code,
                    ucode=ucode, average_time=average_time,
                    ulevel=ulevel, ukeys=ukeys)
-        if is_student:
-            msg = f'コギーくんを呼んだわ！ {ULEVEL[ulevel-1]}'
-            kogi_set(openai_key=f's{K}-{STUDENT_CODE}Ag8')
-        else:
-            msg = f'学籍番号が変ね。AIを使いたいなら再起動してね。'
+        msg = f'{uname}さん！ {ULEVEL[ulevel-1]}'
+        kogi_set(about_me=uname, openai_key=f's{K}-{STUDENT_CODE}Ag8')
         return JSON({'text': msg})
     except:
         traceback.print_exc()

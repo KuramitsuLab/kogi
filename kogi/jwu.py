@@ -1,4 +1,4 @@
 import kogi
 from .ui.keylogin import login
-kogi.enable()
+#kogi.enable()
 login()
