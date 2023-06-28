@@ -94,7 +94,7 @@ class ChatAI(object):
             about_me = self.slots['about_me']
             ss.append(f'私は{about_me}です。')
         ss.append(f'{input_text}')
-        ss.append(f'80文字以内で簡潔に答えてください。')
+        ss.append(f'80文字以内で簡潔にお願いします。')
         if 'tone' in self.slots:
             tone = self.slots['tone']
             ss.append(tone)
@@ -126,6 +126,7 @@ class ChatAI(object):
     def dialog_with_context(self, input_text):
         prompt = self.get_prompt(input_text)
         context = self.get_context()
+        debug_print(prompt, context)
         response, tokens = model_prompt(prompt, context=context)
         if response == '':
             return self.no_response()
