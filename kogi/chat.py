@@ -43,17 +43,16 @@ class ChatAI(object):
         else:
             self.slots = {}
         self.slots['rec_id'] = None
+        self.slots['role'] = kogi_get('role', 'Pythonに詳しい友人')
+        if kogi_get('about_me', None):
+            self.slots['about_me'] = kogi_get('about_me')
+        self.slots['tone'] = kogi_get('tone', 'お友達口調で優しく教えてください。')
 
     def difftime(self):
         t = time.time()
         diff = int(t - self.prev_time)
         self.prev_time = t
         return diff
-
-    # def record(self, task, input_text, output_text):
-    #     rec_id = len(self.records)
-    #     self.records.append((task, input_text, output_text))
-    #     return rec_id
 
     def likeit(self, rec_id, score):
         if rec_id in self.chats:
@@ -72,20 +71,40 @@ class ChatAI(object):
         else:
             self.face_icon = '@kogi_plus'
         # 将来は分類モデルに置き換える
-        if 'code' in self.slots:
-            kwargs['include_code'] = True
-        if 'eline' in self.slots:
-            kwargs['include_eline'] = True
-        if len(input_text) < 7: #コードを直して
-            kwargs['detailed'] = True
-        return self.dialog_with_context(input_text, **kwargs)
+        # if self.slots.get('prompt_type') != 'direct':
+            # if 'code' in self.slots:
+            #     kwargs['include_code'] = True
+            # if 'eline' in self.slots:
+            #     kwargs['include_eline'] = True
+            # if len(input_text) < 7: #コードを直して
+            #     kwargs['detailed'] = True
+        return self.dialog_with_context(input_text)
 
     def no_response(self):
         return 'AIが反応しない..'
 
-    def get_context(self, **kwargs):
+    def get_prompt(self, input_text):
+        if self.slots.get('prompt_type') != 'direct':
+            return input_text
         ss = []
-        if kwargs.get('include_code', False) and 'code' in self.slots:
+        if 'role' in self.slots:
+            role = self.slots['role']
+            ss.append(f'あなたは{role}です。')
+        if 'about_me' in self.slots:
+            about_me = self.slots['about_me']
+            ss.append(f'私は{about_me}です。')
+        ss.append(f'{input_text}')
+        ss.append(f'80文字以内で簡潔に答えてください。')
+        if 'tone' in self.slots:
+            tone = self.slots['tone']
+            ss.append(tone)
+        return '\n'.join(ss)
+
+    def get_context(self):
+        if self.slots.get('prompt_type') != 'direct':
+            return ''
+        ss=[]
+        if 'code' in self.slots:
             ss.append('コード:')
             ss.append('```')
             ss.append(remove_comment(self.slots['code']))
@@ -93,27 +112,32 @@ class ChatAI(object):
         if 'emsg' in self.slots:
             emsg = self.slots['emsg']
             ss.append(f'発生したエラー: {emsg}')
-        if kwargs.get('include_eline', False) and 'eline' in self.slots:
+        if 'eline' in self.slots:
             eline = self.slots['eline']
             ss.append(f'エラーの発生した行: {eline}')
-        if 'prev_input_text' in self.slots and kwargs.get('detailed', False):
-            ss.append(self.slots['prev_input_text'])
+        if 'prev_prompt' in self.slots:
+            ss.append(f'前のプロンプト:')
+            ss.append(self.slots['prev_prompt']+'\n')
+        if 'prev_response' in self.slots:
+            ss.append(f'前の回答:')
+            ss.append(self.slots['prev_response']+'\n')
         return '\n'.join(ss)
 
-    def dialog_with_context(self, input_text, **kwargs):
-        prompt = input_text
-        context = self.get_context(**kwargs)
+    def dialog_with_context(self, input_text):
+        prompt = self.get_prompt(input_text)
+        context = self.get_context()
         response, tokens = model_prompt(prompt, context=context)
         if response == '':
             return self.no_response()
-        self.slots['prev_input_text'] = input_text
-        rec_id = record_log(type='prompt', 
-                            prompt_type='auto', 
+        self.slots['prev_prompt'] = input_text
+        self.slots['prev_response'] = response
+        rec_id = record_log(type='prompt',
+                            prompt_type=self.slot.get('prompt_type', 'auto'), 
                             difftime=self.difftime(),
                             input_text=input_text,
                             context=context, prompt=prompt, response=response, tokens=tokens)
         self.chats[rec_id] = (context, prompt, response,
-                              ('dialog_request', input_text, kwargs))
+                              ('dialog_request', input_text))
         self.slots['rec_id'] = rec_id
         return self.face(response), rec_id
 
@@ -196,15 +220,6 @@ def call_and_start_kogi(actions, code: str = None, context: dict = None):
         return
 
 
-def kogi_prompt(prompt):
-    _DefaultChatbot.update({'prompt_type': 'direct', 'prompt_tone': ''})
-    doc, rec_id = _DefaultChatbot.prompt(prompt)
-    doc = Doc.md(doc)
-    doc.add_likeit(rec_id)
-    doc.set_mention('@robot')
-    start_dialog(_DefaultChatbot, doc)
-
-
 def error_message(record):
     doc = Doc()
     if 'emsg_rewritten' in record:
@@ -237,6 +252,13 @@ def is_direct_kogi_call(record):
     return False
 
 
+def kogi_prompt(prompt):
+    _DefaultChatbot.update({'prompt_type': 'direct'})
+    doc, rec_id = _DefaultChatbot.prompt(prompt)
+    doc = Doc.md(doc)
+    doc.add_likeit(rec_id)
+    start_dialog(_DefaultChatbot, doc)
+
 def catch_and_start_kogi(exc_info=None, code: str = None, context: dict = None, exception=None, enable_dialog=True):
     if exc_info is None:
         exc_info = sys.exc_info()
@@ -244,8 +266,6 @@ def catch_and_start_kogi(exc_info=None, code: str = None, context: dict = None, 
                       caught_ex=exception, translate=translate)
     debug_print(record)
     if is_direct_kogi_call(record):
-        # msg = record['_eparams'][0][1:-1]
-        # debug_print(msg)
         kogi_prompt(code)
         return
 
