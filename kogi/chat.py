@@ -47,7 +47,8 @@ class ChatAI(object):
         if kogi_get('about_me', None):
             self.slots['about_me'] = kogi_get('about_me')
         self.slots['tone'] = kogi_get('tone', 'お友達口調で優しく教えてください。')
-
+        debug_print('updating slots', self.slots)
+        
     def difftime(self):
         t = time.time()
         diff = int(t - self.prev_time)
@@ -126,7 +127,7 @@ class ChatAI(object):
     def dialog_with_context(self, input_text):
         prompt = self.get_prompt(input_text)
         context = self.get_context()
-        debug_print(prompt, context)
+        debug_print(prompt, context, self.slots)
         response, tokens = model_prompt(prompt, context=context)
         if response == '':
             return self.no_response()
