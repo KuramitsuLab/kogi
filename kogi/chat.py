@@ -141,6 +141,7 @@ class ChatAI(object):
         self.chats[rec_id] = (context, prompt, response,
                               ('dialog_request', input_text))
         self.slots['rec_id'] = rec_id
+        self.slots['prompt_type'] = 'chat'
         return self.face(response), rec_id
 
 
