@@ -59,23 +59,18 @@ img_url_pattern = re.compile(r'https?://[^\s]+?\.(jpg|jpeg|png|gif)')
 
 
 def markdown_to_html(markdown_text):
-    html_text = html.escape(markdown_text)
-
-    # # Code block
-    # html_text = re.sub(r'```python([\s\S]*?)```', r'<pre><code>\1</code></pre>', html_text)
-    # html_text = re.sub(r'```([\s\S]*?)```', r'<pre><code>\1</code></pre>', html_text)
-    # html_text = re.sub(r'`(.*?)`', r'<code>\1</code>', html_text)
+    html_text = html.escape(markdown_text).replace('\n', '<br>')
 
     # 正規表現でマッチしたURLを<img>タグに変換
     html_text = img_url_pattern.sub(r'<img src="\g<0>" alt="image" />', html_text)
 
     # Headers
-    html_text = re.sub(r'###### (.*)', r'<h6>\1</h6>', html_text)
-    html_text = re.sub(r'##### (.*)', r'<h5>\1</h5>', html_text)
-    html_text = re.sub(r'#### (.*)', r'<h4>\1</h4>', html_text)
-    html_text = re.sub(r'### (.*)', r'<h3>\1</h3>', html_text)
-    html_text = re.sub(r'## (.*)', r'<h2>\1</h2>', html_text)
-    html_text = re.sub(r'# (.*)', r'<h1>\1</h1>', html_text)
+    # html_text = re.sub(r'###### (.*)', r'<h6>\1</h6>', html_text)
+    # html_text = re.sub(r'##### (.*)', r'<h5>\1</h5>', html_text)
+    # html_text = re.sub(r'#### (.*)', r'<h4>\1</h4>', html_text)
+    # html_text = re.sub(r'### (.*)', r'<h3>\1</h3>', html_text)
+    # html_text = re.sub(r'## (.*)', r'<h2>\1</h2>', html_text)
+    # html_text = re.sub(r'# (.*)', r'<h1>\1</h1>', html_text)
     
     # Strong
     html_text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', html_text)
