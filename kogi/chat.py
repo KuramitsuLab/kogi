@@ -75,12 +75,21 @@ def start_kogi(context: dict=None, trace_error=False, start_dialog=True):
         context[key] = value
     
     nickname = f"My name is {context['nickname']}. " if 'nickname' in context else ''
+    ulevel = context.get('ulevel', 3)
     if kogi_get('lang', 'en') == 'ja':
-        context['role'] = f'{nickname}You are a kind friend helping Python programming.'
-        context['prompt_suffix'] = 'To be concise. Please answer friendly in Japanese within 100 characters.'
+        if ulevel < 3:
+            context['role'] = f'{nickname}You are an encouraging friend helping Python programming.'
+            context['prompt_suffix'] = 'Use a conversational voice and a polite tone. Answer it in Japanese within 100 characters. Be concise.'
+        else:
+            context['role'] = f'You are an experienced professional Python programmer.'
+            context['prompt_suffix'] = 'Be concise. Please answer in Japanese.'
     else:
-        context['role'] = f'{nickname}You are a high school teachear helping computer and Python.'
-        context['prompt_suffix'] = 'Use conversational voice and tone. Imagine you’re talking to a friend. To be concise.'
+        if ulevel < 3:
+            context['role'] = f'{nickname}You are a high school instructor helping computer and Python.'
+            context['prompt_suffix'] = 'Use a conversational voice and tone in English. Be very concise and empathetic.'
+        else:
+            context['role'] = f'You are an experienced professional Python programmer.'
+            context['prompt_suffix'] = 'Be concise. Please answer in English.'
 
     if 'prompt' in context:
         dialog = start_chat(context, chat=kogi_chat, placeholder=None)
