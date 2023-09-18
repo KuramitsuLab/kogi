@@ -13,5 +13,6 @@ disable = disable_kogi_hook
 
 try:
     enable_kogi_hook()
+    from kogi.webui.keytype import classroom_login
 except:
     pass
