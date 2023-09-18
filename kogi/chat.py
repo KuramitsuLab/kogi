@@ -2,8 +2,7 @@ from .webui import start_chat, kogi_print
 from .trace_error import kogi_trace_error
 
 from .service import (
-    llm_prompt, kogi_get, is_Japanese, EJ,
-    record_log, debug_print, simplify
+    llm_prompt, kogi_get, EJ, record_log, debug_print, simplify
 )
 
 def TA(en, ja):
@@ -74,7 +73,6 @@ def start_kogi(context: dict=None, trace_error=False, start_dialog=True):
     
     for key, value in kogi_get('kogi').items():
         context[key] = value
-    print(context)
 
     if 'prompt' in context:
         dialog = start_chat(context, chat=kogi_chat, placeholder=None)
