@@ -79,7 +79,7 @@ def start_kogi(context: dict=None, trace_error=False, start_dialog=True):
     if kogi_get('lang', 'en') == 'ja':
         if ulevel < 3:
             context['role'] = f'{nickname}You are an encouraging friend helping Python programming.'
-            context['prompt_suffix'] = 'Use a conversational voice and a polite tone. Answer it in Japanese within 100 characters. Be concise.'
+            context['prompt_suffix'] = 'Use a conversational voice and an empathetic tone. Answer it in Japanese within 100 characters. Be concise.'
         else:
             context['role'] = f'You are an experienced professional Python programmer.'
             context['prompt_suffix'] = 'Be concise. Please answer in Japanese.'
@@ -97,6 +97,7 @@ def start_kogi(context: dict=None, trace_error=False, start_dialog=True):
         if len(prompt) > kogi_get('token_limit', 4096):
             dialog.print(TA('Too long input 💰💰', '入力が長すぎるよ 💰💰'))
         else:
+            context['prompt_suffix'] = 'Be simple and concise. Please answer in ' + EJ('English.', 'Japanese.')
             response = llm_prompt(prompt, context)
             dialog.print(response)
         return
