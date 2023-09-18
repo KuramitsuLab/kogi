@@ -1,3 +1,4 @@
+AssertionError:	指定された条件を満たしていないようです。
 AttributeError: <A> object attribute <B> is read-only	<A>オブジェクトのBプロパティは読み取り専用です。代入できません。
 AttributeError: <A> object has no attribute <B>	<A>オブジェクトには<B>プロパティも<B>メソッドもありません。
 AttributeError: <A> object has no property <B>	<A>オブジェクトは<B>プロパティも<B>メソッドもありません。

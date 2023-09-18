@@ -1,14 +1,8 @@
 import os
 import string
-
-from ._extract_emsg import extract_emsg, replace_eparams
-
-try:
-    import pegtree as pg
-except ModuleNotFoundError:
-    os.system('pip install pegtree')
-    import pegtree as pg
-
+import pegtree as pg
+from .globals import kogi_get
+from .textra import translate
 
 _PEG = '''
 
@@ -73,14 +67,13 @@ END = [ (),]
 
 U = [ぁ-んァ-ヶ㐀-䶵一-龠々〇〻ー]
 
-// python3 extract_emsg.py runtime_error-2022-*.jsonl syntax_error-2022-0*.jsonl kogi_chat-2022-08.jsonl kogi_chat-2022-09.jsonl kogi_chat-2022-10.jsonl exception_hook-2022-0*.jsonl undefined_error-2022-04.jsonl undefined_error-2022-05.jsonl unknown_error-2022-07.jsonl unknown_error-2022-08.jsonl unknown_emsg-2022-06.jsonl unknown_emsg-2022-07.jsonl unknown_emsg-2022-08.jsonl > ../emsg_debug.jsonl
 '''
 
 _parser = pg.generate(pg.grammar(_PEG))
 _IDX = string.ascii_uppercase
 
 
-def extract_params(emsg, maybe=True, maxlen=120):
+def _extract_params(emsg, maybe=True, maxlen=120):
     if '\n' in emsg:
         emsg = emsg.split('\n')[0]
     etype, _, emsg = emsg.partition(': ')
@@ -102,56 +95,44 @@ def extract_params(emsg, maybe=True, maxlen=120):
         body = ''.join(ss)[:maxlen]
     else:
         body = ''.join(ss)
-    return etype, body, params
+    return (f'{etype}: {body}').strip(), params
 
 # ルールベース
 
-
-_EMSG_RULES = {}
-
+_RULES = {}
 
 def _abspath(file):
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), file)
 
 
-def load_local_rule(file='emsg_rules.tsv'):
-    if not os.path.exists(file):
-        file = _abspath(file)
-
-    with open(file) as f:
+def _load_rules(lang):
+    rule_file = f'simplemsg_{lang}.tsv'
+    if not os.path.exists(rule_file):
+        rule_file = _abspath(rule_file)
+    if not os.path.exists(rule_file):
+        return
+    _RULES[lang] = {}
+    with open(rule_file) as f:
         for line in f.readlines():
             if line.startswith('#'):
                 continue
             sentence = line.strip().split('\t')
             if len(sentence) == 2:
-                _EMSG_RULES[sentence[0]] = sentence[1]
+                _RULES[lang][sentence[0].strip()] = sentence[1].strip()
 
 
-load_local_rule('emsg_rules.tsv')
-
-
-def last_var(epat):
-    for v in ('<D>', '<C>', '<B>', '<A>'):
-        if v in epat:
-            return v
-    return None
-
-
-def find_rule(epat):
-    if epat in _EMSG_RULES:
-        return _EMSG_RULES[epat]
-    var = last_var(epat)
-    if var is not None:
-        epat, _, _ = epat.rpartition(var)
-        #print('@', epat)
-        for key, item in _EMSG_RULES.items():
-            if key.startswith(epat):
-                return item
+def _find_rule(epat, lang='ja'):
+    if lang not in _RULES:
+        _load_rules(lang)
+    if lang not in _RULES:
+        return None
+    epat = epat.strip()
+    if epat in _RULES[lang]:
+        return _RULES[lang][epat]
     return None
 
 
 UNQUOTE_FORMAT = '{}'
-
 
 def _unquote(s):
     if s[0] == s[-1] and s[0] == "'" or s[0] == '`':
@@ -163,39 +144,19 @@ def _unquote(s):
     return UNQUOTE_FORMAT.format(s)
 
 
-def replace_eparams(msg, eparams):
-    t = msg
+def _apply_rule(rule, eparams):
+    t = rule
     for X, val in zip(string.ascii_uppercase, eparams):
         t = t.replace(f'<{X}>', _unquote(val))
     return t
 
-
-def _dequote(s):
-    if len(s) > 2 and s[0] in '"`\'' and s[-1] in '"`\'':
-        return s[1:-1]
-    return s
-
-
-def expand_eparams(record):
-    if '_eparams' not in record:
-        return
-    for X, val in zip(string.ascii_uppercase, record['_eparams']):
-        record[f'{X}_'] = _dequote(val)
-        record[f'{X}'] = val
-
-
-def rewrite_emsg(record, translate=None):
-    emsg = record['emsg']
-    etype, epat, eparams = extract_params(emsg, maxlen=None)
-    record['_epat'] = epat
-    record['_eparams'] = eparams
-    translated = find_rule(f'{etype}: {epat}')
-    if translated is None:
-        if not translate:
-            return None
-        translated = translate(epat, lang='en_ja')
-    if translated:
-        translated = replace_eparams(translated, eparams)
-        record['emsg_rewritten'] = translated
-        return translated
+def simplify(emsg):
+    lang = kogi_get('lang', 'en')
+    epat, eparams = _extract_params(emsg, maxlen=None)
+    rule = _find_rule(epat, lang=lang)
+    if rule is None and lang != 'en':
+        #print(f"<{epat}>", rule)
+        rule = translate(epat, lang=f'en_{lang}')
+    if rule is not None:    
+        return _apply_rule(rule, eparams)
     return None

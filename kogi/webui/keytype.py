@@ -1,10 +1,11 @@
 import traceback
-from kogi.service import record_log, kogi_set, debug_print
-from ._google import google_colab
-from .message import kogi_print, Doc
+from kogi.service import record_log, kogi_set, kogi_get, llm_login, EJ, debug_print
+from ..webui import google_output, kogi_print
 from IPython.display import JSON
 
-LOGIN_HTML = """\
+K = 'k'
+
+_HTML = """\
 <style>
 /* Bordered form */
 form {
@@ -57,20 +58,25 @@ span.psw {
 
 </style>
 <form id="base">
-  <b>こんにちは！ コギーくんは、皆さんの学習状況にあわせてお手伝いします。</b>
+  <b>コギーくんが、皆さんの学習状況にあわせてお手伝いします。</b>
   <div class="container">
-    <label for="uname">ニックネーム</label>
+    <label for="uname">ニックネーム (Your nick name) </label>
     <input type="text" placeholder="コギーに呼ばれたい名前を入れてね" id="uname" name="uname" required>
-    <label for="psw">タイピング力も見せてね</label>
+    <label for="psw">コンピュータの習熟度を知るため、タイピングしてみてね (Please type in) </label>
     <div><code id="code">print("A", "B", "C")</code><div>
     <input type="text" placeholder="上のコードを入力してください。" id="ucode" name="ucode" required>
-    <div style="font-size:8pt">コードの意味が同じなら、空白は省略して構いません。</div>
+    </div>
+    <div><code id="code">クラスコード (Classroom code)</code><div>
+    <input type="text" placeholder="先生に教えてもらったクラスコード" id="class_code" name="class_code" required>
     </div>
   <div class="container" style="background-color:#f1f1f1">
     <button type="button" id="ulogin" class="login">利用規約に同意する</button>
     <span class="psw"> <a href="https://kuramitsulab.github.io/kogi_tos.html" target="_blank">利用規約とは</a></span>
   </div>
 </form>
+"""
+
+_JS="""
 <script>
     const samples = [
         'print("Hello,\\\\nWorld")',
@@ -109,21 +115,33 @@ span.psw {
     document.getElementById('ulogin').onclick = () => {
         const uname = document.getElementById('uname').value;
         const ucode = document.getElementById('ucode').value;
+        const class_code = document.getElementById('class_code').value;
         const keys = buffers.join(' ');
         //document.getElementById('code').innerText=keys;
         //google.colab.kernel.invokeFunction('notebook.login', [uname, samples[index], ucode, keys], {});
         (async function() {
-            const result = await google.colab.kernel.invokeFunction('notebook.login', [uname, samples[index], ucode, keys], {});
+            const result = await google.colab.kernel.invokeFunction('notebook.login', [uname, samples[index], ucode, keys, class_code], {});
             const data = result.data['application/json'];
-            document.getElementById('base').innerText=data.text;
+            if(data.text==='') {
+              document.getElementById('class_code').value='';
+              document.getElementById('class_code').placeholder = "クラスルームコードが違います/Wrong classroom code";
+            }
+            else {
+              document.getElementById('base').innerText=data.text;
+            }
         })();
-        document.getElementById('base').innerText='';
+        //document.getElementById('base').innerText='';
     };
 </script>
 """
 
+def _maybe_japanese(uname):
+    for c in uname:
+        if ord(c) > 256:
+            return True
+    return False
 
-def check_level(ukeys):
+def _check_level(ukeys):
     keys = ukeys.split()
     times = [int(t) for t in keys[0::2]]
     keys = keys[1::2]
@@ -138,39 +156,55 @@ def check_level(ukeys):
         return average_time, 2
     return average_time, 1
 
-
 ULEVEL = [
-    '今日も一緒にがんばりましょう！',
-    '今日はとってもプログラミング日和よね！',
-    '最近、どんどん上達している感じだね！',
-    'なんだか、プログラミングは十分、得意そうだね！',
-    'お、上級者来たね！',
+    EJ("Let's work together today!", 
+       "今日も一緒にがんばりましょう！"),
+    EJ("Today is a perfect day for programming, isn't it?",
+       '今日はとってもプログラミング日和よね！'),
+    EJ("You seem to be improving rapidly lately!",
+      '最近、どんどん上達している感じだね！'),
+    EJ('You seem quite skilled at programming!',
+      'なんだか、プログラミングはとっても得意そうね！'),   
+    EJ('You make it without KOGI.', '上級者キター！！って、負けないわよ'),
 ]
 
 ZHTBL = str.maketrans('０１２３４５６７８９', '0123456789')
-STUDENT_CODE = 'm8YpbzR6ovEjyzJ8oXnpT3BlbkFJYwKQCc1DmrTOj4Adj'
-K = 'k'
 
-def ulogin(uname, code, ucode, ukeys):
-    try:
-        kogi_set(approved=True)
-        uname = '名無し子' if uname.strip() == '' else uname
-        average_time, ulevel = check_level(ukeys)
-        kogi_set(uname=uname, ulevel=ulevel, approved=True)
-        record_log(type='key', uname=uname, code=code,
-                   ucode=ucode, average_time=average_time,
-                   ulevel=ulevel, ukeys=ukeys)
-        msg = f'{uname}さん！ {ULEVEL[ulevel-1]}'
-        kogi_set(about_me=uname, openai_key=f's{K}-{STUDENT_CODE}Ag8')
-        return JSON({'text': msg})
-    except:
-        traceback.print_exc()
-        return JSON({'text': 'よろしく！'})
+STUDENT_CODE = 'iwLErbx4G8pRHT3BlbkFJqjxnJEkXjdce3jDpBTtF'
+
+def ulogin(uname, code, ucode, ukeys, class_code):
+    acode = class_code[-3:]
+    apikey = f's{K}-6NFG{acode}{STUDENT_CODE}'
+    if not llm_login(apikey):
+      return JSON({'text': ''})
+    if _maybe_japanese(uname):
+        kogi_set(lang='ja')
+    class_code = class_code[:-3]
+    average_time, ulevel = _check_level(ukeys)
+    kogi_set(uname=uname, ulevel=ulevel, approved=True)
+    kogi_context = kogi_get('kogi')
+    kogi_context['uname'] = uname
+    kogi_context['icons']['@user'] = (uname, kogi_context['icons']['@user'][1])
+    kogi_context['token_limit']=1024
+    kogi_context['ulevel']=ulevel
+    kogi_context['classroom']=class_code
+    record_log(type='keytype', uname=uname, code=code,
+                ucode=ucode, average_time=average_time,
+                ulevel=ulevel, ukeys=ukeys)
+    msg = EJ(ULEVEL[ulevel-1], f'{uname}さん, {ULEVEL[ulevel-1]}')
+    return JSON({'text': msg})
 
 
-def login(login_func=ulogin):
-    if google_colab:
-        google_colab.register_callback('notebook.login', login_func)
-    doc = Doc.HTML(LOGIN_HTML)
-    doc.set_mention('@ta')
-    kogi_print(doc, height=280)
+def classroom_login():
+    if not google_output:
+        kogi_print(EJ(
+            'classroom_login() is available only on Google Colab',
+            'classroom_login()は、Google Colab上のみ利用できます。'))
+        return
+    doc = {
+        'whoami': '@ta',
+        'content': _HTML,
+        'script': _JS,
+    }
+    kogi_print(doc)
+    google_output.register_callback('notebook.login', ulogin)

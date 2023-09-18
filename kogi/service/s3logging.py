@@ -1,9 +1,6 @@
 import inspect
 import pytz
 import uuid
-import json
-# import traceback
-# import signal
 import requests
 from datetime import datetime, timezone
 from .globals import kogi_get, is_debugging

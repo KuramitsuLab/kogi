@@ -93,13 +93,12 @@ def judge_cpc(ipy, code, data, context):
     render_footer(data)
     return ac
 
-
-def kogi_judge(ipy, code, data, judge_fn, catch_and_start_kogi):
+def kogi_judge(ipy, code, data, judge_fn, start_kogi):
     try:
-        context = {}
+        context = {'code': code}
         ac = judge_fn(ipy, code, data, context)
         record_log(type='atcoder', problem_id=data.get('problem_id'), ac=ac, code=code)
     except SyntaxError as e:
-        catch_and_start_kogi(code=code, context=context, exception=e)
+        start_kogi(context, trace_error=True)
     except:
-        catch_and_start_kogi(code=code, context=context)
+        start_kogi(context, trace_error=True)

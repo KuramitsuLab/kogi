@@ -1,25 +1,28 @@
-from kogi.service import kogi_print
+import re
 from .drill import kogi_judge, judge_cpc
 from .atcoder import download_atcoder_problem
-from kogi.hook import kogi_register_hook
 
+from kogi.chat import start_kogi, kogi_print
+from kogi.hook import register_hook
 
-def atcoder_detector(directive, raw_cell):
-    if 'https://atcoder.jp/contests/' in directive:
-        return 'atcoder'
-    return None
+KOGI_PAT = re.compile('#\\s*kogi\\s*(.*)')
 
+def _is_atcoder(code):
+    for url in re.findall(KOGI_PAT, code):
+        if 'https://atcoder.jp/contests/' in url:
+            return True
+    return False
 
-def atcoder_judge(ipy, raw_cell, directive, catch_and_start_kogi):
-    data = download_atcoder_problem(directive)
-    if 'error' in data:
-        kogi_print(data['error'])
-    elif 'problem_id' in data:
+def _run_atcoder(ipy, raw_cell, **kwargs):
+    for url in re.findall(KOGI_PAT, raw_cell):
+        if 'https://atcoder.jp/contests/' in url:
+            break
+    data = download_atcoder_problem(url)
+    if 'problem_id' in data:
         kogi_print('コギーがAtCoderの問題を発見し、テストケースを実行しようとしています')
-        kogi_judge(ipy, raw_cell, data, judge_cpc, catch_and_start_kogi)
+        kogi_judge(ipy, raw_cell, data, judge_cpc, start_kogi)
     else:
         kogi_print('問題が見つかりません。')
     return None
 
-
-kogi_register_hook('atcoder', atcoder_judge, atcoder_detector)
+register_hook('atcoder', _is_atcoder, _run_atcoder)

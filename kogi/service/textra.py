@@ -4,6 +4,13 @@ from requests_oauthlib import OAuth1
 from .globals import kogi_get, globals_update
 from .s3logging import kogi_print
 
+def is_Japanese():
+    return kogi_get('lang', 'en') == 'ja'
+
+def EJ(en, ja=None):
+    return ja if is_Japanese() and ja else en
+
+
 # Translate
 
 TEXTRA_NAME = 'kkuramitsu'
