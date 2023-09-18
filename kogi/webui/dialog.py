@@ -73,12 +73,12 @@ def markdown_to_html(markdown_text):
     # html_text = re.sub(r'# (.*)', r'<h1>\1</h1>', html_text)
     
     # Strong
-    html_text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', html_text)
-    html_text = re.sub(r'__(.*?)__', r'<strong>\1</strong>', html_text)
+    # html_text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', html_text)
+    # html_text = re.sub(r'__(.*?)__', r'<strong>\1</strong>', html_text)
     
     # Emphasis
-    html_text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', html_text)
-    html_text = re.sub(r'_(.*?)_', r'<em>\1</em>', html_text)
+    # html_text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', html_text)
+    # html_text = re.sub(r'_(.*?)_', r'<em>\1</em>', html_text)
 
     return html_text
 
