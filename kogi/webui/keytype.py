@@ -156,17 +156,18 @@ def _check_level(ukeys):
         return average_time, 2
     return average_time, 1
 
-ULEVEL = [
-    EJ("Let's work together today!", 
-       "今日も一緒にがんばりましょう！"),
-    EJ("Today is a perfect day for programming, isn't it?",
-       '今日はとってもプログラミング日和よね！'),
-    EJ("You seem to be improving rapidly lately!",
-      '最近、どんどん上達している感じだね！'),
-    EJ('You seem quite skilled at programming!',
-      'なんだか、プログラミングはとっても得意そうね！'),   
-    EJ('You make it without KOGI.', '上級者キター！！って、負けないわよ'),
-]
+def get_greeding_message(ulevel):
+  return [
+      EJ("Let's work together today!", 
+        "今日も一緒にがんばりましょう！"),
+      EJ("Today is a perfect day for programming, isn't it?",
+        '今日はとってもプログラミング日和よね！'),
+      EJ("You seem to be improving rapidly lately!",
+        '最近、どんどん上達している感じだね！'),
+      EJ('You seem quite skilled at programming!',
+        'なんだか、プログラミングはとっても得意そうね！'),   
+      EJ('You make it without KOGI.', '上級者キター！！って、負けないわよ'),
+  ][ulevel-1]
 
 ZHTBL = str.maketrans('０１２３４５６７８９', '0123456789')
 
@@ -177,7 +178,7 @@ def ulogin(uname, code, ucode, ukeys, class_code):
     apikey = f's{K}-6NFG{acode}{STUDENT_CODE}'
     if not llm_login(apikey):
       return JSON({'text': ''})
-    if _maybe_japanese(uname):
+    if kogi_get('lang', None) is None and _maybe_japanese(uname):
         kogi_set(lang='ja')
     class_code = class_code[:-3]
     average_time, ulevel = _check_level(ukeys)
@@ -191,7 +192,7 @@ def ulogin(uname, code, ucode, ukeys, class_code):
     record_log(type='keytype', uname=uname, code=code,
                 ucode=ucode, average_time=average_time,
                 ulevel=ulevel, ukeys=ukeys)
-    msg = EJ(ULEVEL[ulevel-1], f'{uname}さん, {ULEVEL[ulevel-1]}')
+    msg = get_greeding_message(ulevel)
     return JSON({'text': msg})
 
 

@@ -4,11 +4,11 @@ from requests_oauthlib import OAuth1
 from .globals import kogi_get, globals_update
 from .s3logging import kogi_print
 
-def is_Japanese():
+def is_ja():
     return kogi_get('lang', 'en') == 'ja'
 
 def EJ(en, ja=None):
-    return ja if is_Japanese() and ja else en
+    return ja if is_ja() and ja else en
 
 
 # Translate
