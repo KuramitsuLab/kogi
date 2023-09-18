@@ -73,12 +73,20 @@ def start_kogi(context: dict=None, trace_error=False, start_dialog=True):
     
     for key, value in kogi_get('kogi').items():
         context[key] = value
+    
+    nickname = f"My name is {context['nickname']}. " if 'nickname' in context else ''
+    if kogi_get('lang', 'en') == 'ja':
+        context['role'] = f'{nickname}You are a kind friend helping Python programming.'
+        context['prompt_suffix'] = 'To be concise. Please answer friendly in Japanese within 100 characters.'
+    else:
+        context['role'] = f'{nickname}You are a high school teachear helping computer and Python.'
+        context['prompt_suffix'] = 'Use conversational voice and tone. Imagine you’re talking to a friend. To be concise.'
 
     if 'prompt' in context:
         dialog = start_chat(context, chat=kogi_chat, placeholder=None)
         prompt = context['prompt']
         if len(prompt) > kogi_get('token_limit', 4096):
-            dialog.print(TA('入力が長すぎるよ 💰💰', 'Too long input 💰💰'))
+            dialog.print(TA('Too long input 💰💰', '入力が長すぎるよ 💰💰'))
         else:
             response = llm_prompt(prompt, context)
             dialog.print(response)

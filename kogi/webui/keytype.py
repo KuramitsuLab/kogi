@@ -184,7 +184,7 @@ def ulogin(uname, code, ucode, ukeys, class_code):
     average_time, ulevel = _check_level(ukeys)
     kogi_set(uname=uname, ulevel=ulevel, approved=True)
     kogi_context = kogi_get('kogi')
-    kogi_context['uname'] = uname
+    kogi_context['nickname'] = uname
     kogi_context['icons']['@user'] = (uname, kogi_context['icons']['@user'][1])
     kogi_context['token_limit']=1024
     kogi_context['ulevel']=ulevel
