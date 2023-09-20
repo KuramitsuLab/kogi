@@ -158,8 +158,8 @@ def _check_level(ukeys):
 
 def get_greeding_message(ulevel, kpm):
   return EJ(
-      f"You've got {kpm:.2f} Keystroke Per Minite."
-      f'タイピングは、1分あたり{kpm:.2f}文字。') + '<br>'+ ([
+      f"You've got {kpm:.2f} Keystroke Per Minite. ",
+      f'タイピングは、1分あたり{kpm:.2f}打数。') + '\n'+ ([
       EJ("Let's work together today!", 
         "今日も一緒にがんばりましょう！"),
       EJ("Today is a perfect day for programming, isn't it?",
@@ -168,10 +168,8 @@ def get_greeding_message(ulevel, kpm):
         '最近、どんどん上達している感じだね！'),
       EJ('You seem quite skilled at programming!',
         'なんだか、プログラミングはとっても得意そうね！'),   
-      EJ('You make it without KOGI.', '上級者キター！！って、負けないわよ'),
+      EJ('You can make it without KOGI.', '上級者キター！！って、負けないわよ'),
   ][ulevel-1])
-
-ZHTBL = str.maketrans('０１２３４５６７８９', '0123456789')
 
 STUDENT_CODE = 'iwLErbx4G8pRHT3BlbkFJqjxnJEkXjdce3jDpBTtF'
 

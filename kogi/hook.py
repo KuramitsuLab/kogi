@@ -55,7 +55,10 @@ def hooked_run_cell(ipy, raw_cell, kwargs):
         run_cell = find_run_cell_function(raw_cell)
         result = run_cell(ipy, raw_cell, **kwargs)
         if isinstance(result, ExecutionResult):
-            print(result)
+            if hasattr(result.info, 'result') and raw_cell != "":
+                if 'from google.colab.output import _js' not in raw_cell:
+                    record_log(log='run_cell', 
+                               code=raw_cell, result=f'{result.info.result}')
         else:
             result = RUN_CELL(ipy, 'pass', **kwargs)
         return result
