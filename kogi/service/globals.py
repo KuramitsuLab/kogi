@@ -7,6 +7,7 @@ _GLOBALS = {
             '@user': ('You', 'girl-fs8.png'),
             '@bot': ('KOGI', 'kogi_doya-fs8.png'),
             '@ta': ('TA', 'ta-fs8.png'),
+            '@ai': ('KOGI', 'kogi_gpt-fs8.png'),
         },
         'total_tokens': 0,
         'role': 'You are a high school instructor teaching Python.',

@@ -17,7 +17,7 @@ def debug_print(*args, **kw):
         lineno = inspect.currentframe().f_back.f_lineno
         if '/kogi/' in filename:
             _, _, filename = filename.rpartition('/kogi/')
-        loc = f'[🐝{filename}:{lineno}]'
+        loc = f'[👀{filename}:{lineno}]'
         print('\033[35m' + loc, *args, **kw)
         print('\033[0m', end='')
 
@@ -44,20 +44,21 @@ def _copylog(logdata):
     return logdata
 
 
-def record_log(lazy=False, **kargs):
+def record_log(**kargs):
     global SEQ, _LOG_BUFFERS, epoch
     now = datetime.now(pytz.timezone('Asia/Tokyo'))
     date = now.isoformat(timespec='seconds')
     logdata = _copylog(dict(seq=SEQ, date=date, **kargs))
-    if 'type' not in logdata:
-        logdata['type'] = 'debug'
-    if is_debugging():
-        logdata['type_orig'] = logdata['type']
-        logdata['type'] = 'debug'
+    if 'log' not in logdata:
+        logdata['log'] = 'debug'
+    elif is_debugging():
+        logdata['log_orig'] = logdata['log']
+        logdata['log'] = 'debug'
+        debug_print(logdata)
     SEQ += 1
     if kogi_get('approved', False):
         _LOG_BUFFERS.append(logdata)
-        send_log(not lazy)
+        _send_buffer(right_now=True)
     return SEQ-1
 
 
@@ -68,12 +69,12 @@ KEY = 'OjwoF3m0l20OFidHsRea3ptuQRfQL10ahbEtLa'
 prev_epoch = datetime.now().timestamp()
 
 
-def send_log(right_now=True):
+def _send_buffer(right_now=True):
     global prev_epoch, _LOG_BUFFERS, POINT
     now = datetime.now().timestamp()
     delta = (now - prev_epoch)
     prev_epoch = now
-    if len(_LOG_BUFFERS) > 0 and (right_now or delta > 30 or len(_LOG_BUFFERS) > 4):
+    if (len(_LOG_BUFFERS) > 0 and (right_now or delta > 30) or len(_LOG_BUFFERS) > 4):
         data = {
             "session": SESSION,
             "uname": kogi_get('uname', ''),

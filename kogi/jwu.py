@@ -1,4 +1,2 @@
 import kogi
-from .OLDui.keylogin import login
-#kogi.enable()
-login()
+kogi.classroom_login()

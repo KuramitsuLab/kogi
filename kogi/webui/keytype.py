@@ -154,10 +154,12 @@ def _check_level(ukeys):
         return average_time, 3
     if average_time < 500:
         return average_time, 2
-    return average_time, 1
+    return 60000 / average_time, 1
 
-def get_greeding_message(ulevel):
-  return [
+def get_greeding_message(ulevel, kpm):
+  return EJ(
+      f"You've got {kpm:.2f} Keystroke Per Minite."
+      f'タイピングは、1分あたり{kpm:.2f}文字。') + '<br>'+ ([
       EJ("Let's work together today!", 
         "今日も一緒にがんばりましょう！"),
       EJ("Today is a perfect day for programming, isn't it?",
@@ -167,7 +169,7 @@ def get_greeding_message(ulevel):
       EJ('You seem quite skilled at programming!',
         'なんだか、プログラミングはとっても得意そうね！'),   
       EJ('You make it without KOGI.', '上級者キター！！って、負けないわよ'),
-  ][ulevel-1]
+  ][ulevel-1])
 
 ZHTBL = str.maketrans('０１２３４５６７８９', '0123456789')
 
@@ -181,18 +183,19 @@ def ulogin(uname, code, ucode, ukeys, class_code):
     if kogi_get('lang', None) is None and _maybe_japanese(uname):
         kogi_set(lang='ja')
     class_code = class_code[:-3]
-    average_time, ulevel = _check_level(ukeys)
+    kpm, ulevel = _check_level(ukeys)
     kogi_set(uname=uname, ulevel=ulevel, approved=True)
     kogi_context = kogi_get('kogi')
     kogi_context['nickname'] = uname
     kogi_context['icons']['@user'] = (uname, kogi_context['icons']['@user'][1])
     kogi_context['token_limit']=1024
     kogi_context['ulevel']=ulevel
+    kogi_context['kpm']=kpm
     kogi_context['classroom']=class_code
-    record_log(type='keytype', uname=uname, code=code,
-                ucode=ucode, average_time=average_time,
-                ulevel=ulevel, ukeys=ukeys)
-    msg = get_greeding_message(ulevel)
+    record_log(log='keytype', 
+               classroom=class_code, uname=uname, code=code,
+                ucode=ucode, ulevel=ulevel, kpm=kpm, ukeys=ukeys)
+    msg = get_greeding_message(ulevel, kpm)
     return JSON({'text': msg})
 
 

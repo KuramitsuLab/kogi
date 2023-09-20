@@ -1,53 +1,55 @@
 import sys
 import re
 import linecache
-import ast
-from .service import EJ
+from .service import EJ, record_log
+import traceback
 
-def _astnode_stringfy(node, inner=True):
-    if isinstance(node, ast.Name):
-        return str(node.id)
-    if isinstance(node, ast.Attribute):
-        return _astnode_stringfy(node.value) + '.' + str(node.attr)
-    if isinstance(node, ast.Call):
-        return _astnode_stringfy(node.func) + '()'
-    if isinstance(node, ast.Subscript):
-        return _astnode_stringfy(node.value)+'['+_astnode_stringfy(node.slice)+']'
-    if isinstance(node, ast.Slice):
-        if not inner:
-            return '@'
-        base = _astnode_stringfy(node.lower)+':'+_astnode_stringfy(node.upper)
-        if node.step is None:
-            return base
-        return base + ':' + _astnode_stringfy(node.step)
-    if isinstance(node, ast.Index):
-        return _astnode_stringfy(node.value)
-    if inner:
-        if isinstance(node, ast.Constant):
-            return str(node.value)
-        if isinstance(node, ast.Num):
-            return str(node.n)
-        if isinstance(node, ast.Str):
-            return str(node.s)
-        if node is None:
-            return ''
-    return '@'
+# import ast
 
-def _astnode_traverse(node, ss: set):
-    snipet = _astnode_stringfy(node, inner=False)
-    if '@' not in snipet:
-        ss.add(snipet)
-    for sub_node in ast.iter_child_nodes(node):
-        _astnode_traverse(sub_node, ss)
-    return ss
+# def _astnode_stringfy(node, inner=True):
+#     if isinstance(node, ast.Name):
+#         return str(node.id)
+#     if isinstance(node, ast.Attribute):
+#         return _astnode_stringfy(node.value) + '.' + str(node.attr)
+#     if isinstance(node, ast.Call):
+#         return _astnode_stringfy(node.func) + '()'
+#     if isinstance(node, ast.Subscript):
+#         return _astnode_stringfy(node.value)+'['+_astnode_stringfy(node.slice)+']'
+#     if isinstance(node, ast.Slice):
+#         if not inner:
+#             return '@'
+#         base = _astnode_stringfy(node.lower)+':'+_astnode_stringfy(node.upper)
+#         if node.step is None:
+#             return base
+#         return base + ':' + _astnode_stringfy(node.step)
+#     if isinstance(node, ast.Index):
+#         return _astnode_stringfy(node.value)
+#     if inner:
+#         if isinstance(node, ast.Constant):
+#             return str(node.value)
+#         if isinstance(node, ast.Num):
+#             return str(node.n)
+#         if isinstance(node, ast.Str):
+#             return str(node.s)
+#         if node is None:
+#             return ''
+#     return '@'
 
-def _extract_variables(code):
-    try:
-        node = ast.parse(code)
-        ss = _astnode_traverse(node, set())
-        return [s for s in ss if (not s.endswith('()')) and (s+'()' not in ss)]
-    except SyntaxError:
-        return []
+# def _astnode_traverse(node, ss: set):
+#     snipet = _astnode_stringfy(node, inner=False)
+#     if '@' not in snipet:
+#         ss.add(snipet)
+#     for sub_node in ast.iter_child_nodes(node):
+#         _astnode_traverse(sub_node, ss)
+#     return ss
+
+# def _extract_variables(code):
+#     try:
+#         node = ast.parse(code)
+#         ss = _astnode_traverse(node, set())
+#         return [s for s in ss if (not s.endswith('()')) and (s+'()' not in ss)]
+#     except SyntaxError:
+#         return []
 
 
 variable_pattern = re.compile(r'\b([a-zA-Z_][a-zA-Z0-9_]*)\b')
@@ -169,7 +171,7 @@ def trace_runtime_error(context):
     exprs = None
     if code != '':
         exprs = _extract_variables(code)
-        record['exprs_in_code'] = exprs
+        record['variables'] = exprs
         exprs = set(exprs)
 
     record['_stacks'] = stacks = []
@@ -197,13 +199,19 @@ def trace_runtime_error(context):
     if focused_stack:
         record['lineno'] = focused_stack['lineno']
         record['error_line'] = focused_stack['error_line']
+        vars = {}
+        names = _extract_variables(code)
+        for name, value in focused_stack['local_vars'].items():
+            if name in names and name not in vars:
+                vars[name] = [type(value).__name__, repr(value)]
+        record['variables'] = vars
 
 def trace_syntax_error(context):
     code = context['code']
     _SET_LINES(code)
-    caught_ex = context['_caught_ex']
-
     record = context['error']
+    caught_ex = record['_evalue']
+
     record['filename'] = caught_ex.filename
     record['lineno'] = caught_ex.lineno
     record['offset'] = offset = caught_ex.offset
@@ -212,26 +220,28 @@ def trace_syntax_error(context):
     return record
 
 
-
-def kogi_trace_error(context=None, translate=None):
+def kogi_trace_error(context=None):
     etype, evalue, tb = sys.exc_info()
     if etype is None:
         return {}
     if context is None:
         context = {}
     context['error'] = dict(
+#        code=context['code'],
         type=f'{etype.__name__}',
         message=(f'{etype.__name__}: {evalue}').strip(),
+        traceback = traceback.format_exc(),
+        # exception = traceback.format_exception_only(etype, evalue),
         _traceback = tb,
+        _evalue = evalue,
     )
-    if issubclass(etype, SyntaxError):
-        try:
-            raise
-        except SyntaxError as e:
-            context['_caught_ex'] = e
-    if isinstance(context.get('_caught_ex'), SyntaxError):
+    if isinstance(evalue, SyntaxError):
         trace_syntax_error(context)
     else:
         trace_runtime_error(context)
-    #print(context['error'])
+    code=context['code']
+    record_log(log='error', 
+        code=code, **(context['error']),
+        classroom=context.get('classroom',''),
+        kpm=context.get('kpm', -1))
     return context['error']

@@ -1,3 +1,4 @@
+import re
 import json
 import requests
 from requests_oauthlib import OAuth1
@@ -10,6 +11,24 @@ def is_ja():
 def EJ(en, ja=None):
     return ja if is_ja() and ja else en
 
+hira_pattern = re.compile('[あ-をア-ヲ]')
+
+def is_japanese_text(text):
+    return re.search(hira_pattern, text) is not None
+
+common_words = [
+    "the", "to", "that", "it", "with", "you", "this", "but", "on", 
+    "have", "be", "are", "of", "please", "tell", "answer",
+    "what", "an", "at", "was", "will", "we", "can", "could",
+    "your", "find", "my", "fix", "code", "following",
+    "about", "would", "there", "which", "out", "above", 
+    "below", "get", "like"
+]
+
+word_pattern = re.compile(r'\b(' + '|'.join(common_words) + r')\b')
+
+def is_english_text(text):
+    return len(re.findall(word_pattern, text.lower())) > 0
 
 # Translate
 
