@@ -100,6 +100,9 @@ def start_kogi(context: dict=None, trace_error=False, start_dialog=True):
             context['prompt_suffix'] = 'Be simple and concise. Please answer in ' + EJ('English.', 'Japanese.')
             response = llm_prompt(prompt, context)
             dialog.print(response)
+            record_log(log='prompt', prompt=prompt, response=response, 
+                       classroom=context.get('classroom', ''),
+                       kpm=context.get('kpm', -1))
         return
 
     if trace_error:
