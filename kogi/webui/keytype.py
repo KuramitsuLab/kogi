@@ -174,26 +174,29 @@ def get_greeding_message(ulevel, kpm):
 STUDENT_CODE = 'iwLErbx4G8pRHT3BlbkFJqjxnJEkXjdce3jDpBTtF'
 
 def ulogin(uname, code, ucode, ukeys, class_code):
-    acode = class_code[-3:]
-    apikey = f's{K}-6NFG{acode}{STUDENT_CODE}'
-    if not llm_login(apikey):
-      return JSON({'text': ''})
-    if kogi_get('lang', None) is None and _maybe_japanese(uname):
-        kogi_set(lang='ja')
-    class_code = class_code[:-3]
-    kpm, ulevel = _check_level(ukeys)
-    kogi_set(uname=uname, ulevel=ulevel, approved=True)
-    kogi_context = kogi_get('kogi')
-    kogi_context['nickname'] = uname
-    kogi_context['icons']['@user'] = (uname, kogi_context['icons']['@user'][1])
-    kogi_context['token_limit']=1024
-    kogi_context['ulevel']=ulevel
-    kogi_context['kpm']=kpm
-    kogi_context['classroom']=class_code
-    record_log(log='keytype', 
-               classroom=class_code, uname=uname, code=code,
-                ucode=ucode, ulevel=ulevel, kpm=kpm, ukeys=ukeys)
-    msg = get_greeding_message(ulevel, kpm)
+    try:
+      acode = class_code[-3:]
+      apikey = f's{K}-6NFG{acode}{STUDENT_CODE}'
+      if not llm_login(apikey):
+        return JSON({'text': ''})
+      if kogi_get('lang', None) is None and _maybe_japanese(uname):
+          kogi_set(lang='ja')
+      class_code = class_code[:-3]
+      kpm, ulevel = _check_level(ukeys)
+      kogi_set(uname=uname, ulevel=ulevel, approved=True)
+      kogi_context = kogi_get('kogi')
+      kogi_context['nickname'] = uname
+      kogi_context['icons']['@user'] = (uname, kogi_context['icons']['@user'][1])
+      kogi_context['token_limit']=1024
+      kogi_context['ulevel']=ulevel
+      kogi_context['kpm']=kpm
+      kogi_context['classroom']=class_code
+      record_log(log='keytype', 
+                classroom=class_code, uname=uname, code=code,
+                  ucode=ucode, ulevel=ulevel, kpm=kpm, ukeys=ukeys)
+      msg = get_greeding_message(ulevel, kpm)
+    except:
+        traceback.print_exc()
     return JSON({'text': msg})
 
 
