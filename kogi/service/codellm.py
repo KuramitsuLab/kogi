@@ -45,7 +45,7 @@ How about taking a break for today?
 """)
 
 _TEMPORARY=None
-llm_count=0
+llm_count = 0
 model_cache = {}
 
 def _prepare_messages(prompt, context):
@@ -115,7 +115,7 @@ def llm_prompt(prompt, context: dict):
         }
 
 def llm_login(apikey):
-    global _TEMPORARY
+    global _TEMPORARY, llm_count
     if llm_count > 128:
         return TOO_MANY_USAGES()
     llm_count+=1
