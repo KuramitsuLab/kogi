@@ -29,38 +29,62 @@ def is_prompt(code):
 def run_prompt(ipy, raw_cell, **kwargs):
     context = {'prompt': raw_cell}
     start_kogi(context)
+    record_log(
+        log='run', 
+        run_id=len(ipy.user_global_ns['In'])+1, 
+        run_type = 'prompt',
+        input=raw_cell, 
+        output=context['response'],
+    )
 
 
 _HOOKED_RUN_CELL_FUNCTIONS = [
     ('prompt', is_prompt, run_prompt)
 ]
 
-def register_hook(hook_name, is_hooked_fn, run_cell_fn):
+def register_hook(run_type, is_hooked_fn, run_cell_fn):
     global _HOOKED_RUN_CELL_FUNCTIONS
-    _HOOKED_RUN_CELL_FUNCTIONS = [(hook_name, is_hooked_fn, run_cell_fn)] + _HOOKED_RUN_CELL_FUNCTIONS
+    _HOOKED_RUN_CELL_FUNCTIONS = [(run_type, is_hooked_fn, run_cell_fn)] + _HOOKED_RUN_CELL_FUNCTIONS
 
 def find_run_cell_function(raw_cell):
     global _HOOKED_RUN_CELL_FUNCTIONS
-    for hook_name, is_hooked_fn, run_cell_fn in _HOOKED_RUN_CELL_FUNCTIONS:
-        # print(hook_name, is_hooked_fn(raw_cell))
+    for run_type, is_hooked_fn, run_cell_fn in _HOOKED_RUN_CELL_FUNCTIONS:
         if is_hooked_fn(raw_cell):
-            # if 'from google.colab.output import _js' not in raw_cell and raw_cell != "":
-            #     record_log(type='run_cell', key_name=hook_name, code=raw_cell)
-            return run_cell_fn
-    return RUN_CELL
+            return run_type, run_cell_fn
+    return 'exec', RUN_CELL
 
 def hooked_run_cell(ipy, raw_cell, kwargs):
     with warnings.catch_warnings():
         warnings.simplefilter('error', SyntaxWarning)
-        run_cell = find_run_cell_function(raw_cell)
+        run_type, run_cell = find_run_cell_function(raw_cell)
         result = run_cell(ipy, raw_cell, **kwargs)
         if isinstance(result, ExecutionResult):
-            if hasattr(result.info, 'result') and raw_cell != "":
-                if 'from google.colab.output import _js' not in raw_cell:
-                    record_log(log='run_cell', 
-                               code=raw_cell, result=f'{result.info.result}')
+            if raw_cell == "" or 'from google.colab.output import _js' in raw_cell:
+                return result
+            if result.error_before_exec is None and result.error_in_exec is None:
+                record_log(
+                    log='run', run_id = result.execution_count, 
+                    run_type = run_type,
+                    input=raw_cell, 
+                    output=f'{result.info.result}' if hasattr(result.info, 'result') else None,
+                )
+            else: 
+                record_log(
+                    log='run', run_id = result.execution_count, 
+                    run_type = f'{run_type}_error',
+                    input=raw_cell, 
+                    output=traceback.format_exc(),
+                )
         else:
-            result = RUN_CELL(ipy, 'pass', **kwargs)
+            result_pass = RUN_CELL(ipy, 'pass', **kwargs)
+            if result is not None:
+                record_log(
+                    log='run', run_id = result_pass.execution_count, 
+                    run_type = run_type,
+                    input=raw_cell, 
+                    output=f'{result}',
+                )
+            result_pass = result
         return result
 
 def change_run_cell(func):
@@ -81,8 +105,9 @@ def change_showtraceback(func):
     def showtraceback(*args, **kwargs):        
         try:
             ipyshell = args[0]
+            raw_cell = ipyshell.user_global_ns['In'][-1]
             context = {
-                'code': ipyshell.user_global_ns['In'][-1],
+                'code': raw_cell,
             }
             start_kogi(context, trace_error=True, start_dialog=True)
         except:
