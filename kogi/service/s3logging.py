@@ -48,6 +48,7 @@ def record_log(**kargs):
     global SEQ, _LOG_BUFFERS, epoch
     now = datetime.now(pytz.timezone('Asia/Tokyo'))
     date = now.isoformat(timespec='seconds')
+    extract_string_content
     logdata = _copylog(dict(seq=SEQ, date=date, **kargs))
     if 'log' not in logdata:
         logdata['log'] = 'debug'

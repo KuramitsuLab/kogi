@@ -10,6 +10,13 @@ def TA(en, ja):
         'whoami': '@ta', 'content': EJ(en, ja),
     }
 
+def extract_string_content(message):
+    if isinstance(message, str):
+        return message
+    if isinstance(message, dict) and message.get('whoami', '') != '@system':
+        return message.get('content', '') 
+    return None
+
 def append_code_context(context):
     ss = []
     if 'code' in context:
@@ -74,6 +81,7 @@ def start_kogi(context: dict=None, trace_error=False, start_dialog=True):
     for key, value in kogi_get('kogi').items():
         context[key] = value
     
+    # KOGI Prompt の調整
     nickname = f"My name is {context['nickname']}. " if 'nickname' in context else ''
     ulevel = context.get('ulevel', 3)
     if kogi_get('lang', 'en') == 'ja':
@@ -91,18 +99,22 @@ def start_kogi(context: dict=None, trace_error=False, start_dialog=True):
             context['role'] = f'You are an experienced professional Python programmer.'
             context['prompt_suffix'] = 'Be concise. Please answer in English.'
 
-    if 'prompt' in context:
+    if 'prompt' in context: # プロンプトの直接呼び出し
         dialog = start_chat(context, chat=kogi_chat, placeholder=None)
         prompt = context['prompt']
-        if len(prompt) > kogi_get('token_limit', 4096):
+        if len(prompt) > kogi_get('token_limit', 2048):
             dialog.print(TA('Too long input 💰💰', '入力が長すぎるよ 💰💰'))
         else:
             context['prompt_suffix'] = 'Be simple and concise. Please answer in ' + EJ('English.', 'Japanese.')
             response = llm_prompt(prompt, context)
+            output = extract_string_content(response)
+            if output:
+                context[output] = output
+                record_log(log='prompt', 
+                        prompt=prompt, response=output, 
+                        classroom=context.get('classroom', ''),
+                        kpm=context.get('kpm', -1))
             dialog.print(response)
-            record_log(log='prompt', prompt=prompt, response=response, 
-                       classroom=context.get('classroom', ''),
-                       kpm=context.get('kpm', -1))
         return
 
     if trace_error:

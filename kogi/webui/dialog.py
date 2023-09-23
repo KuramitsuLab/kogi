@@ -253,6 +253,7 @@ def perform_chat(dialog, chat_fn, user_input, context):
 def start_chat(context=None, chat=default_chat, css=MAIN_CSS, placeholder=None):
     if context is None:
         context = {}
+    
     dialog = display_main(context, placeholder=placeholder)
     dialog.context = context
 

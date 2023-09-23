@@ -29,13 +29,9 @@ def is_prompt(code):
 def run_prompt(ipy, raw_cell, **kwargs):
     context = {'prompt': raw_cell}
     start_kogi(context)
-    record_log(
-        log='run', 
-        run_id=len(ipy.user_global_ns['In'])+1, 
-        run_type = 'prompt',
-        input=raw_cell, 
-        output=context['response'],
-    )
+    if 'output' in context:
+        return context['output']
+    return None
 
 
 _HOOKED_RUN_CELL_FUNCTIONS = [
