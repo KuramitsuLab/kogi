@@ -191,9 +191,8 @@ def ulogin(uname, code, ucode, ukeys, class_code):
       kogi_context['ulevel']=ulevel
       kogi_context['kpm']=kpm
       kogi_context['classroom']=class_code
-      record_log(log='keytype', 
-                classroom=class_code, uname=uname, code=code,
-                  ucode=ucode, ulevel=ulevel, kpm=kpm, ukeys=ukeys)
+      record_log(log='keytype', uname=uname, code=code,
+                  ucode=ucode, ulevel=ulevel, ukeys=ukeys)
       msg = get_greeding_message(ulevel, kpm)
     except:
         traceback.print_exc()

@@ -2,7 +2,7 @@ from .webui import start_chat, kogi_print
 from .trace_error import kogi_trace_error
 
 from .service import (
-    llm_prompt, kogi_get, EJ, record_log, debug_print, simplify
+    llm_prompt, kogi_get, kogi_set, EJ, is_japanese_text, record_log, debug_print, simplify
 )
 
 def TA(en, ja):
@@ -37,6 +37,8 @@ def append_code_context(context):
     )
 
 def kogi_chat(user_input: str, context: dict):
+    if is_japanese_text(user_input):
+        kogi_set('lang', 'ja')
     if context.get('tokens', 0) > kogi_get('token_limit', 4096):
         return TA(
             'Too many requests! KOGI seems so tired!'
@@ -48,6 +50,7 @@ def kogi_chat(user_input: str, context: dict):
         ]
         append_code_context(context)
     response = llm_prompt(user_input, context)
+    record_log(log='chat', prompt=user_input, response=extract_string_content(response)) 
     return response
 
 def generate_error_message(context):
@@ -109,11 +112,8 @@ def start_kogi(context: dict=None, trace_error=False, start_dialog=True):
             response = llm_prompt(prompt, context)
             output = extract_string_content(response)
             if output:
-                context[output] = output
-                record_log(log='prompt', 
-                        prompt=prompt, response=output, 
-                        classroom=context.get('classroom', ''),
-                        kpm=context.get('kpm', -1))
+                context['output'] = output
+                record_log(log='prompt', prompt=prompt, response=output) 
             dialog.print(response)
         return
 

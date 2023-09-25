@@ -240,8 +240,5 @@ def kogi_trace_error(context=None):
     else:
         trace_runtime_error(context)
     code=context['code']
-    record_log(log='error', 
-        code=code, **(context['error']),
-        classroom=context.get('classroom',''),
-        kpm=context.get('kpm', -1))
+    record_log(log='error', code=code, **(context['error']))
     return context['error']

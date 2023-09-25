@@ -43,13 +43,22 @@ def _copylog(logdata):
         return [_copylog(x) for x in logdata]
     return logdata
 
+DUMMY_CLASS = { 'kpm': -1, 'classroom': ''}
+
+def get_classroom():
+    try:
+        classroom = kogi_get('kogi', DUMMY_CLASS).get('classroom', '')
+        kpm = kogi_get('kogi', DUMMY_CLASS).get('kpm', -1)
+        return classroom, kpm
+    except:
+        return '', -1
 
 def record_log(**kargs):
     global SEQ, _LOG_BUFFERS, epoch
     now = datetime.now(pytz.timezone('Asia/Tokyo'))
     date = now.isoformat(timespec='seconds')
-    extract_string_content
-    logdata = _copylog(dict(seq=SEQ, date=date, **kargs))
+    classroom, kpm = get_classroom()
+    logdata = _copylog(dict(seq=SEQ, date=date, classroom=classroom, kpm=kpm, **kargs))
     if 'log' not in logdata:
         logdata['log'] = 'debug'
     elif is_debugging():
