@@ -38,7 +38,7 @@ def append_code_context(context):
 
 def kogi_chat(user_input: str, context: dict):
     if is_japanese_text(user_input):
-        kogi_set('lang', 'ja')
+        kogi_set(lang='ja')
     if context.get('tokens', 0) > kogi_get('token_limit', 4096):
         return TA(
             'Too many requests! KOGI seems so tired!'
@@ -50,7 +50,7 @@ def kogi_chat(user_input: str, context: dict):
         ]
         append_code_context(context)
     response = llm_prompt(user_input, context)
-    record_log(log='chat', prompt=user_input, response=extract_string_content(response)) 
+    record_log(log='chat', prompt=user_input, response=extract_string_content(response), messages=context['messages'])
     return response
 
 def generate_error_message(context):

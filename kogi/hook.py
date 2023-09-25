@@ -80,7 +80,7 @@ def hooked_run_cell(ipy, raw_cell, kwargs):
                     input=raw_cell, 
                     output=f'{result}',
                 )
-            result_pass = result
+            result = result_pass
         return result
 
 def change_run_cell(func):
