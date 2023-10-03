@@ -28,7 +28,10 @@ common_words = [
 word_pattern = re.compile(r'\b(' + '|'.join(common_words) + r')\b')
 
 def is_english_text(text):
-    return len(re.findall(word_pattern, text.lower())) > 0
+    text = text.lower()
+    if 'please' in text:
+        return True
+    return len(re.findall(word_pattern, text)) > 1
 
 # Translate
 

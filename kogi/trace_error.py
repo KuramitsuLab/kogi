@@ -112,14 +112,17 @@ def _format_name_value(name, value):
     dump = dump.replace('<', '&lt;')
     doc.append(f"<b>{name}</b>={dump} : ")
     doc.append(f'<span style="color:red">{type(value).__name__}</span>')
-    if hasattr(value, 'columns'):
-        doc.append(f' {name}.columns = {list(value.columns)}')
-    elif hasattr(value, 'keys'):
-        doc.append(f' {name}.keys = {list(value.keys)}')
-    elif hasattr(value, 'shape'):
-        doc.append(f' {name}.shape = {repr(value.shape)}')
-    elif hasattr(value, '__len__'):
-        doc.append(f' len({name})={len(value)}')
+    try:
+        if hasattr(value, 'columns'):
+            doc.append(f' {name}.columns = {list(value.columns)}')
+        elif hasattr(value, 'keys'):
+            doc.append(f' {name}.keys = {list(value.keys)}')
+        elif hasattr(value, 'shape'):
+            doc.append(f' {name}.shape = {repr(value.shape)}')
+        elif hasattr(value, '__len__'):
+            doc.append(f' len({name})={len(value)}')
+    except:
+        pass
     return ''.join(doc)
 
 def _format_variables(record, doc):
