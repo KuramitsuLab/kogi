@@ -5,7 +5,7 @@ from functools import wraps
 
 from IPython.core.interactiveshell import InteractiveShell, ExecutionResult
 from kogi.chat import start_kogi
-from kogi.service import record_log, is_japanese_text, is_english_text, kogi_set
+from kogi.service import record_log, is_japanese_text, is_english_text, kogi_set, kogi_get
 
 RUN_CELL = InteractiveShell.run_cell
 SHOW_TRACEBACK = InteractiveShell.showtraceback
@@ -22,7 +22,7 @@ def is_prompt(code):
     if is_japanese_text(head+tail):
         kogi_set(lang='ja')
         return True
-    if is_english_text(head+tail):
+    if kogi_get('lang', '') != 'ja' and is_english_text(head+tail):
         return True
     return False
 

@@ -312,10 +312,10 @@ class Canvas(object):
         self.onclick_fn = onclick
         self.filename = 'canvas.mp4'
         self.displayed = False
-        if google_colab:
-            google_colab.register_callback(
+        if google_output:
+            google_output.register_callback(
                 'notebook.click', safe(self.click))
-            google_colab.register_callback(
+            google_output.register_callback(
                 'notebook.save', safe(self.save))
 
     def loadImage(self, image_key, url, width=None, height=None):
