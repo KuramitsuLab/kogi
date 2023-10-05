@@ -1,1 +1,1 @@
-from .OLDui._canvas import Canvas, draw_np
+from .webui.pycanvas import Canvas, draw_np
