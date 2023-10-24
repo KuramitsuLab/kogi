@@ -2,4 +2,6 @@ openai
 pegtree
 requests
 requests_oauthlib
+cohere
+tiktoken
 markdown
